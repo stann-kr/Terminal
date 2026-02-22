@@ -91,7 +91,7 @@ const COMMAND_MAP: Record<string, (args?: string[]) => TerminalLine[]> = {
     ),
     line("  개별적인 주체가 됩니다.", "output"),
     line("  "),
-    line("  DIRECTOR : STANN LUMO", "output"),
+    line("  OPERATOR : STANN LUMO", "output"),
     line(""),
   ],
 
@@ -103,7 +103,7 @@ const COMMAND_MAP: Record<string, (args?: string[]) => TerminalLine[]> = {
     line("  [02]  MARCUS L", "success"),
     line("  [03]  NUSNOOM", "success"),
     line("────────────────────────────", "system"),
-    line("  Genre: Hypnotic, Sci-Fi Techno", "output"),
+    line("  Genre: Hypnotic, Futuristic Techno", "output"),
     line(""),
   ],
 

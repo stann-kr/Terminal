@@ -103,6 +103,8 @@ const LINE_COLOR: Record<TerminalLine["type"], string> = {
   link: "text-[var(--grey-text)] hover:text-[var(--orange)] hover:underline cursor-pointer transition-colors",
 };
 
+const QUICK_COMMANDS = ["about", "lineup", "gate", "link"];
+
 /**
  * 터미널 셸 컴포넌트.
  * 로고 + 출력 히스토리 + 입력창으로 구성됩니다.
@@ -177,13 +179,11 @@ export default function TerminalShell() {
   };
 
   /**
-   * 명령어 제출 처리
-   * @param e - 폼 제출 이벤트
+   * 명령어 실행 로직 (공통)
    */
-  const handleSubmit = useCallback(
-    async (e: React.FormEvent) => {
-      e.preventDefault();
-      const cmd = input.trim();
+  const executeCommand = useCallback(
+    async (cmdStr: string) => {
+      const cmd = cmdStr.trim();
       if (!cmd || isBooting || isProcessing) return;
 
       // 입력 히스토리 저장
@@ -221,7 +221,18 @@ export default function TerminalShell() {
       if (!isMounted.current) return;
       setIsProcessing(false);
     },
-    [input, isBooting, isProcessing, processCommand],
+    [isBooting, isProcessing],
+  );
+
+  /**
+   * 명령어 제출 처리
+   */
+  const handleSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      executeCommand(input);
+    },
+    [input, executeCommand],
   );
 
   /**
@@ -290,7 +301,7 @@ export default function TerminalShell() {
         </div>
 
         {/* 입력창 (부팅 중엔 막기) */}
-        <div className="mt-4 shrink-0 pb-2 h-14">
+        <div className="mt-4 shrink-0 pb-2 h-4">
           <div className="border-t border-[#3a3a3a] pt-4 flex items-center gap-2">
             <span className="text-[var(--orange)] font-bold text-sm select-none">
               &gt;
@@ -328,10 +339,31 @@ export default function TerminalShell() {
                     caret-[var(--orange)]
                   "
                 />
-                <span className="cursor-blink" />
               </form>
             )}
           </div>
+        </div>
+
+        {/* 퀵 커맨드 네비게이션 */}
+        <div className="mt-3 pb-6 flex flex-wrap gap-3 px-1">
+          {QUICK_COMMANDS.map((cmd) => (
+            <button
+              key={cmd}
+              onClick={() => executeCommand(cmd)}
+              disabled={isBooting || isProcessing}
+              style={{ paddingLeft: "0.5rem", paddingRight: "0.5rem" }}
+              className="
+                py-1.5 border border-[var(--grey-border)] text-[var(--grey-text)] text-xs font-mono uppercase tracking-widest
+                transition-all duration-200
+                hover:border-[var(--orange)] hover:text-[var(--orange)] hover:bg-[rgba(255,155,81,0.05)]
+                active:bg-[rgba(255,155,81,0.15)]
+                focus:outline-none
+                disabled:opacity-30 disabled:cursor-not-allowed
+              "
+            >
+              [ &nbsp;{cmd}&nbsp; ]
+            </button>
+          ))}
         </div>
       </div>
     </div>
