@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { COLORS } from "@/lib/colors";
 import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -16,6 +17,10 @@ export const metadata: Metadata = {
     description: "THE UNIVERSAL JOURNEY OF STANN LUMO.",
     type: "website",
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+  },
 };
 
 export const viewport: Viewport = {
@@ -24,11 +29,9 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   interactiveWidget: "resizes-content",
-  themeColor: "#1c1c1c",
   viewportFit: "cover",
+  themeColor: COLORS.GREY_BG,
 };
-
-import NoiseOverlay from "@/components/NoiseOverlay";
 
 export default function RootLayout({
   children,
@@ -36,9 +39,24 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ko" className={jetbrainsMono.variable}>
+    <html
+      lang="ko"
+      className={jetbrainsMono.variable}
+      style={
+        {
+          "--orange": COLORS.ORANGE,
+          "--orange-dim": COLORS.ORANGE_DIM,
+          "--orange-glow": COLORS.ORANGE_GLOW,
+          "--grey-bg": COLORS.GREY_BG,
+          "--grey-surface": COLORS.GREY_SURFACE,
+          "--grey-border": COLORS.GREY_BORDER,
+          "--grey-text": COLORS.GREY_TEXT,
+          "--grey-muted": COLORS.GREY_MUTED,
+          "--error": COLORS.ERROR,
+        } as React.CSSProperties
+      }
+    >
       <body className="antialiased" suppressHydrationWarning>
-        <NoiseOverlay />
         {children}
       </body>
     </html>

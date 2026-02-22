@@ -120,55 +120,106 @@ export default function TerminalShell() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // 터미널 하단 고정 스크롤 (모바일/키보드 환경 최적화)
+  const scrollToBottom = useCallback((smooth = true) => {
+    if (!bottomRef.current) return;
+
+    // 1. scrollIntoView 방식 (부드러운 이동)
+    bottomRef.current.scrollIntoView({
+      behavior: smooth ? "smooth" : "auto",
+      block: "end",
+    });
+
+    // 2. scrollTop 직접 제어 (강제 하단 고정 - 모바일 브라우저 호환성)
+    const container = bottomRef.current.parentElement;
+    if (container) {
+      container.scrollTop = container.scrollHeight;
+    }
+  }, []);
+
+  /**
+   * 공용 렌더링 함수: 여러 줄의 문자열을 한 글자씩 타이핑하듯 부드럽게 출력합니다.
+   * system, error, success 등 컬러풀 비주얼은 라인 단위로 바로 출력하여 속도를 보장하고,
+   * 일반 텍스트(output)는 타이핑 이펙트를 강하게 줍니다.
+   */
+  const renderLines = useCallback(
+    async (linesToRender: TerminalLine[], fastMode = false) => {
+      for (const line of linesToRender) {
+        if (!isMounted.current) return;
+
+        if (line.type !== "output" && line.type !== "input") {
+          const delay = fastMode
+            ? Math.floor(Math.random() * 20) + 10
+            : Math.floor(Math.random() * 50) + 20;
+          await new Promise((r) => setTimeout(r, delay));
+          if (!isMounted.current) return;
+          setHistory((prev) => [...prev, line]);
+          scrollToBottom(false); // 루프 중에는 즉각적인 위치 보정 (auto)
+        } else {
+          const newLineId = `idx-${Date.now()}-${Math.random()}`;
+          setHistory((prev) => [...prev, { ...line, id: newLineId, text: "" }]);
+
+          for (let i = 0; i <= line.text.length; i++) {
+            if (!isMounted.current) return;
+            setHistory((prev) =>
+              prev.map((h) =>
+                h.id === newLineId ? { ...h, text: line.text.slice(0, i) } : h,
+              ),
+            );
+
+            // 타자기 진행 시 실시간 스크롤 고정
+            scrollToBottom(false);
+
+            const typingSpeed = fastMode
+              ? Math.floor(Math.random() * 5) + 2
+              : Math.floor(Math.random() * 20) + 10;
+            await new Promise((r) => setTimeout(r, typingSpeed));
+          }
+        }
+      }
+    },
+    [scrollToBottom],
+  );
+
   // 브라우저 콘솔 이스터 에그 및 부팅 시퀀스
   useEffect(() => {
     isMounted.current = true;
     console.log(EASTER_EGG, "color: #ff4500; font-weight: bold;");
 
-    const timers: ReturnType<typeof setTimeout>[] = [];
+    const runBootSequence = async () => {
+      await new Promise((resolve) => setTimeout(resolve, 600));
 
-    // 부팅 시퀀스 라인 하나씩 추가
-    BOOT_LINES.forEach((item, index) => {
-      const t = setTimeout(() => {
-        if (!isMounted.current) return;
-        setHistory((prev) => [
-          ...prev,
-          { id: `boot-${index}`, text: item.text, type: item.type },
-        ]);
-      }, item.delay);
-      timers.push(t);
-    });
+      // 부팅 문구 렌더링
+      const bootLinesWithIds = BOOT_LINES.map((item) => ({
+        id: `boot-${Date.now()}-${Math.random()}`,
+        text: item.text,
+        type: item.type,
+      }));
+      await renderLines(bootLinesWithIds, true);
 
-    // 부팅 종료 후 환영메시지와 도움말 출력, 입력창 활성화
-    const completeTimer = setTimeout(
-      () => {
-        if (!isMounted.current) return;
-        const { lines } = processCommand("help");
-        setHistory((prev) => [...prev, ...WELCOME_MESSAGES, ...lines]);
+      // 웰컴 메시지 및 도움말 출력
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      if (!isMounted.current) return;
+      const { lines } = processCommand("help");
+      const combined = [...WELCOME_MESSAGES, ...lines];
+      await renderLines(combined, true);
+
+      if (isMounted.current) {
         setIsBooting(false);
-      },
-      BOOT_LINES[BOOT_LINES.length - 1].delay + 1000,
-    );
-    timers.push(completeTimer);
+      }
+    };
+
+    runBootSequence();
 
     return () => {
       isMounted.current = false;
-      timers.forEach(clearTimeout);
     };
-  }, []);
-
-  // 터미널 하단 고정 스크롤 (키보드 등장 대비)
-  const scrollToBottom = useCallback(() => {
-    // 키보드 애니메이션 시간을 고려한 지연 호출
-    setTimeout(() => {
-      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, 150);
-  }, []);
+  }, [renderLines]);
 
   // 새 라인 추가 시 스크롤 하단 이동
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [history]);
+    scrollToBottom();
+  }, [history, scrollToBottom]);
 
   // 화면 클릭 시 입력창 포커스
   const handleContainerClick = (e: React.MouseEvent) => {
@@ -194,6 +245,9 @@ export default function TerminalShell() {
       setIsProcessing(true);
       inputRef.current?.blur(); // iOS 타이핑 종료 직후 명시적으로 키보드 가리기
 
+      // [추가] 명령어 실행 즉시 하단 공간 확보
+      scrollToBottom();
+
       const { lines, shouldClear } = processCommand(cmd);
 
       if (shouldClear) {
@@ -210,19 +264,13 @@ export default function TerminalShell() {
       };
       setHistory((prev) => [...prev, inputLine]);
 
-      // 결과 라인들을 순차적으로 렌더링
-      for (const line of lines) {
-        // 100ms ~ 300ms 사이의 랜덤 지연으로 기계적인 느낌 부여
-        const delay = Math.floor(Math.random() * 200) + 100;
-        await new Promise((resolve) => setTimeout(resolve, delay));
-        if (!isMounted.current) return;
-        setHistory((prev) => [...prev, line]);
-      }
+      // 결과 라인들을 통합 함수를 사용하여 한 글자씩 타이핑
+      await renderLines(lines, false);
 
       if (!isMounted.current) return;
       setIsProcessing(false);
     },
-    [isBooting, isProcessing],
+    [isBooting, isProcessing, renderLines, scrollToBottom],
   );
 
   /**
@@ -309,7 +357,7 @@ export default function TerminalShell() {
             </span>
             {/* 처리 중일 때: 단일 블록 커서 */}
             {(isBooting || isProcessing) && (
-              <span className="cursor-blink w-2 h-4 bg-[var(--orange)] inline-block absolute ml-5" />
+              <span className="cursor-blink w-2 h-4 bg-[var(--orange)] inline-block absolute left-[0.5rem]" />
             )}
 
             {/* 실제 폼과 입력창은 숨기기만 하고 DOM에서 제거하지 않음 */}
@@ -327,12 +375,11 @@ export default function TerminalShell() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                onFocus={scrollToBottom}
+                onFocus={() => scrollToBottom()}
                 onBlur={() => {
-                  setTimeout(() => {
-                    window.scrollTo(0, 0);
-                    document.body.scrollTop = 0;
-                  }, 10);
+                  // iOS 15+ 에서는 interactiveWidget 속성이 레이아웃을 잡아주므로,
+                  // 강제로 scrollTo(0,0)을 호출하면 오히려 뷰포트가 어긋나 로고 상단 여백이 남는 버그가 발생합니다.
+                  // 따라서 별도의 스크롤 개입을 억제합니다.
                 }}
                 autoFocus
                 autoComplete="off"
@@ -341,13 +388,19 @@ export default function TerminalShell() {
                 spellCheck={false}
                 placeholder="enter command..."
                 className="
-                    flex-1 bg-transparent border-none outline-none
+                    peer flex-1 bg-transparent border-none outline-none
                     font-mono text-sm text-[var(--grey-text)]
                     placeholder:text-[var(--grey-border)]
-                    caret-[var(--orange)]
+                    caret-transparent
                   "
               />
-              <span className="cursor-blink" />
+              <span
+                className={`
+                  cursor-blink w-2 h-4 bg-[var(--orange)] 
+                  opacity-0 peer-focus:opacity-100 transition-opacity duration-100
+                  ${input.length === 0 ? "absolute left-[0.5rem]" : "inline-block"}
+                `}
+              />
             </form>
           </div>
         </div>
@@ -359,7 +412,7 @@ export default function TerminalShell() {
               key={cmd}
               onClick={() => executeCommand(cmd)}
               disabled={isBooting || isProcessing}
-              style={{ paddingLeft: "0.5rem", paddingRight: "0.5rem" }}
+              style={{ paddingLeft: "0.25rem", paddingRight: "0.25rem" }}
               className="
                 py-1.5 border border-[var(--grey-border)] text-[var(--grey-text)] text-xs font-mono uppercase tracking-widest
                 transition-all duration-200

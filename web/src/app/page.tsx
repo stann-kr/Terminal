@@ -8,7 +8,7 @@ import TerminalShell from "@/components/TerminalShell";
  */
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-[var(--grey-bg)]">
+    <main className="min-h-screen bg-transparent">
       <TerminalShell />
     </main>
   );

@@ -2,16 +2,12 @@
  * TERMINAL [01] — CLI 명령어 처리기
  *
  * 각 명령어는 TerminalLine 배열을 반환합니다.
- * type: 'output' | 'error' | 'success' | 'system'
+ * 명령어 출력 텍스트의 실제 데이터는 './command-text' 파일에서 관리됩니다.
  */
 
-export type LineType =
-  | "output"
-  | "error"
-  | "success"
-  | "system"
-  | "input"
-  | "link";
+import { COMMAND_TEXTS, ContentItem, LineType } from "./command-text";
+
+export { type LineType } from "./command-text";
 
 export interface TerminalLine {
   id: string;
@@ -35,144 +31,64 @@ const line = (
   url,
 });
 
-/** 명령어 → 응답 라인 매핑 */
+/**
+ * 선언적 콘텐츠(ContentItem) 배열을 TerminalLine 객체 배열로 변환하는 유틸리티
+ */
+const parseContent = (items: ContentItem[]): TerminalLine[] => {
+  return items.map((item) => {
+    // 문자열인 경우 기본 output 타입
+    if (typeof item === "string") return line(item, "output");
+    // 배열인 경우 [text, type, url?] 매핑
+    return line(item[0], item[1] as LineType, item[2]);
+  });
+};
+
+/** 명령어 → 응답 라인 매핑 (비즈니스 로직 및 텍스트 데이터 파싱) */
 const COMMAND_MAP: Record<string, (args?: string[]) => TerminalLine[]> = {
-  help: () => [
-    line("┌──────────────────────────┐", "system"),
-    line("│ TERMINAL CORE INDEX      │", "system"),
-    line("└──────────────────────────┘", "system"),
-    line("  [ INFORMATION ]", "system"),
-    line("  about    — 프로젝트 개요 및 정보", "output"),
-    line("  lineup   — 아티스트 라인업 조회", "output"),
-    line("  gate     — 게이트(장소/일시) 정보", "output"),
-    line("  status   — 시스템 가동 상태 확인", "output"),
-    line("  link     — 외부 연결 링크 제공", "output"),
-    line("  [ SYSTEM ]", "system"),
-    line("  whoami   — 접속자 권한 확인", "output"),
-    line("  echo     — 텍스트 출력 (예: echo hello)", "output"),
-    line("  clear    — 터미널 화면 초기화", "output"),
-    line(""),
-  ],
+  // 정적 콘텐츠 매핑
+  help: () => parseContent(COMMAND_TEXTS.help),
+  about: () => parseContent(COMMAND_TEXTS.about),
+  lineup: () => parseContent(COMMAND_TEXTS.lineup),
+  link: () => parseContent(COMMAND_TEXTS.link),
+  voyage: () => parseContent(COMMAND_TEXTS.voyage),
+  systems: () => parseContent(COMMAND_TEXTS.systems),
+  gate: () => parseContent(COMMAND_TEXTS.gate),
 
-  about: () => [
-    line("┌──────────────────────────┐", "system"),
-    line("│ THE UNIVERSAL JOURNEY    │", "system"),
-    line("└──────────────────────────┘", "system"),
-    line("  TERMINAL은 미지의 구역으로 향하는 항해의 출발점이자, ", "output"),
-    line("  기계적 신호와 감각이 교차하는 정거장입니다.", "output"),
-    line(
-      "  우리는 화려한 시각적 수사를 배제하고, 오직 텍스트와 명령어로만",
-      "output",
-    ),
-    line(
-      "  시스템을 제어하는 CLI처럼 가장 본질적이고 미니멀한 파티를 지향합니다.",
-      "output",
-    ),
-    line("  "),
-    line(
-      "  이 터미널을 가동하는 핵심은 초기 SF 미학의 무기질적인 질감을 담은",
-      "output",
-    ),
-    line(
-      "  최면적이고 미래지향적인(Hypnotic & Futuristic) 테크노입니다.",
-      "output",
-    ),
-    line(
-      "  차갑고 건조하게 설계된 공간 속에서 끝없이 반복되는 깊은 루프는",
-      "output",
-    ),
-    line(
-      "  일상적인 시공간의 경계를 해체합니다. 이곳에 접속한 사람들은 단순한",
-      "output",
-    ),
-    line(
-      "  관객이 아니라, 새로운 궤도를 탐색하기 위해 접근 권한을 얻은",
-      "output",
-    ),
-    line("  개별적인 주체가 됩니다.", "output"),
-    line("  "),
-    line("  OPERATOR : STANN LUMO", "output"),
-    line(""),
-  ],
+  // 동적 콘텐츠 매핑
+  status: () => {
+    const timestamp = new Date().toISOString().replace("T", " ").slice(0, 19);
+    return parseContent(COMMAND_TEXTS.status(timestamp));
+  },
 
-  lineup: () => [
-    line("┌──────────────────────────┐", "system"),
-    line("│ ARTIST MANIFEST [01]     │", "system"),
-    line("└──────────────────────────┘", "system"),
-    line("  [01]  STANN LUMO", "success"),
-    line("  [02]  MARCUS L", "success"),
-    line("  [03]  NUSNOOM", "success"),
-    line("────────────────────────────", "system"),
-    line("  Genre: Hypnotic, Futuristic Techno", "output"),
-    line(""),
-  ],
+  whois: (args?: string[]) => {
+    const target = args?.[0]?.toLowerCase() || "";
+    if (target === "stann" || target === "stannlumo") {
+      return parseContent(COMMAND_TEXTS.whoisStann());
+    }
+    return parseContent(COMMAND_TEXTS.whoisUnknown(target));
+  },
 
-  gate: () => [
-    line("┌──────────────────────────┐", "system"),
-    line("│ TARGET GATE [01]         │", "system"),
-    line("└──────────────────────────┘", "system"),
-    line("  DATE  : 2026.03.07 (SAT)", "output"),
-    line("  VENUE : Club Faust, Seoul", "output"),
-    line("  SECTOR: The Hidden Layer", "output"),
-    line("────────────────────────────", "system"),
-    line("  * Maiden Voyage to the Unknown Sector.", "output"),
-    line(""),
-  ],
+  whoami: () => {
+    const guestId = Math.floor(Math.random() * 9000 + 1000);
+    return parseContent(COMMAND_TEXTS.whoami(guestId));
+  },
 
-  status: () => [
-    line("┌──────────────────────────┐", "system"),
-    line("│ SYSTEM STATUS REPORT     │", "system"),
-    line("└──────────────────────────┘", "system"),
-    line("  TERMINAL     [ OPERATIONAL ]", "success"),
-    line("  MISSION      [ ACTIVE      ]", "success"),
-    line("  HYPERDRIVE   [ CHARGING... ]", "output"),
-    line(
-      `  TIMESTAMP    [ ${new Date().toISOString().replace("T", " ").slice(0, 19)} UTC ]`,
-      "output",
-    ),
-    line(""),
-  ],
-
-  link: () => [
-    line("┌──────────────────────────┐", "system"),
-    line("│ EXTERNAL LINKS           │", "system"),
-    line("└──────────────────────────┘", "system"),
-    line(
-      "  * Stann Lumo Instagram",
-      "link",
-      "https://www.instagram.com/stannlumo/",
-    ),
-    line(
-      "  * Terminal Instagram",
-      "link",
-      "https://www.instagram.com/terminal_hub/",
-    ),
-    line(""),
-  ],
-
-  whoami: () => [
-    line("┌──────────────────────────┐", "system"),
-    line("│ USER CREW MANIFEST       │", "system"),
-    line("└──────────────────────────┘", "system"),
-    line("  USER   : guest", "output"),
-    line("  ROLE   : traveler", "output"),
-    line("  ACCESS : LEVEL 1 (RESTRICTED)", "output"),
-    line(""),
-  ],
-
-  sudo: () => [
-    line("┌──────────────────────────┐", "system"),
-    line("│ [ ERROR ] ACCESS DENIED. │", "system"),
-    line("└──────────────────────────┘", "system"),
-    line("  This incident has been reported to the central AI.", "error"),
-    line(""),
-  ],
+  sudo: (args?: string[]) => {
+    if (
+      args &&
+      args[0]?.toLowerCase() === "login" &&
+      args[1]?.toLowerCase() === "stann"
+    ) {
+      return parseContent(COMMAND_TEXTS.sudoStann());
+    }
+    return parseContent(COMMAND_TEXTS.sudoError());
+  },
 
   echo: (args?: string[]) => {
     if (!args || args.length === 0) {
-      return [line("  usage: echo <text>", "error"), line("")];
+      return parseContent(COMMAND_TEXTS.echoError());
     }
-    return [line(`  ${args.join(" ")}`, "output"), line("")];
+    return parseContent(COMMAND_TEXTS.echoOutput(args.join(" ")));
   },
 };
 
@@ -205,12 +121,7 @@ export function processCommand(raw: string): {
   }
 
   return {
-    lines: [
-      line(
-        `command not found: '${cmd}' — type 'help' for available commands.`,
-        "error",
-      ),
-    ],
+    lines: parseContent(COMMAND_TEXTS.commandNotFound(cmd)),
     shouldClear: false,
   };
 }
