@@ -109,35 +109,18 @@ export default function TerminalShell() {
     console.log(EASTER_EGG, "color: #ff4500; font-weight: bold;");
   }, []);
 
+  // 터미널 하단 고정 스크롤 (키보드 등장 대비)
+  const scrollToBottom = useCallback(() => {
+    // 키보드 애니메이션 시간을 고려한 지연 호출
+    setTimeout(() => {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 150);
+  }, []);
+
   // 새 라인 추가 시 스크롤 하단 이동
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [history]);
-
-  // iOS Safari 가상 키보드 높이 동적 대응 (100dvh 버그 방지)
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.visualViewport) {
-        // visualViewport 높이에 맞춰 body 높이를 강제 고정하여 키보드가 뷰포트를 가리는 것을 밀어냄
-        document.body.style.height = `${window.visualViewport.height}px`;
-        window.scrollTo(0, 0);
-      }
-    };
-
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener("resize", handleResize);
-      window.visualViewport.addEventListener("scroll", handleResize);
-      handleResize(); // 초기화
-    }
-
-    return () => {
-      if (window.visualViewport) {
-        window.visualViewport.removeEventListener("resize", handleResize);
-        window.visualViewport.removeEventListener("scroll", handleResize);
-      }
-      document.body.style.height = ""; // 클린업
-    };
-  }, []);
 
   // 화면 클릭 시 입력창 포커스
   const handleContainerClick = () => {
@@ -254,6 +237,7 @@ export default function TerminalShell() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
+                onFocus={scrollToBottom}
                 onBlur={() => {
                   // 키보드가 닫혔을 때 빈 공간이 남는 iOS 버그 복구
                   setTimeout(() => {
