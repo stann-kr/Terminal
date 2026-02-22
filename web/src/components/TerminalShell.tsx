@@ -95,12 +95,12 @@ const BOOT_LINES: { text: string; delay: number; type: LineType }[] = [
 ];
 
 const LINE_COLOR: Record<TerminalLine["type"], string> = {
-  system: "text-[#4d5162]",
-  output: "text-[#efecec]",
-  success: "text-[#fc6736]",
+  system: "text-[#4A5A67]",
+  output: "text-[#EAEFEF]",
+  success: "text-[#FF9B51]",
   error: "text-[#ff6b6b]",
-  input: "text-[#fc6736] font-bold",
-  link: "text-[#efecec] hover:text-[#fc6736] hover:underline cursor-pointer transition-colors",
+  input: "text-[#FF9B51] font-bold",
+  link: "text-[#EAEFEF] hover:text-[#FF9B51] hover:underline cursor-pointer transition-colors",
 };
 
 /**
@@ -262,11 +262,11 @@ export default function TerminalShell() {
         {/* 입력창 (부팅 중엔 막기) */}
         <div className="mt-4 shrink-0 pb-2 h-14">
           <div className="border-t border-[#3a3a3a] pt-4 flex items-center gap-2">
-            <span className="text-[#ff4500] font-bold text-sm select-none">
+            <span className="text-[var(--orange)] font-bold text-sm select-none">
               &gt;
             </span>
             {isBooting ? (
-              <span className="cursor-blink w-2 h-4 bg-[#fc6736] inline-block" />
+              <span className="cursor-blink w-2 h-4 bg-[var(--orange)] inline-block" />
             ) : (
               <form
                 onSubmit={handleSubmit}
@@ -292,9 +292,9 @@ export default function TerminalShell() {
                   placeholder="enter command..."
                   className="
                     flex-1 bg-transparent border-none outline-none
-                    font-mono text-sm text-[#efecec]
-                    placeholder:text-[#2d2d3a]
-                    caret-[#fc6736]
+                    font-mono text-sm text-[var(--grey-text)]
+                    placeholder:text-[var(--grey-border)]
+                    caret-[var(--orange)]
                   "
                 />
                 <span className="cursor-blink" />

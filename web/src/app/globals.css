@@ -1,4 +1,12 @@
+@import url("https://fonts.googleapis.com/css2?family=Orbit&display=swap");
 @import "tailwindcss";
+@font-face {
+  font-family: "Redline";
+  src: url("/fonts/redline.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}
 
 /* ─────────────────────────────────────────
    TERMINAL [01] — Global Design System
@@ -7,15 +15,17 @@
 ───────────────────────────────────────── */
 
 :root {
-  --orange: #fc6736;
-  --orange-dim: #d5542b;
-  --orange-glow: rgba(252, 103, 54, 0.25);
-  --grey-bg: #0d0d12;
-  --grey-surface: #161622;
-  --grey-border: #2d2d3a;
-  --grey-text: #efecec;
-  --grey-muted: #4d5162;
-  --font-mono: var(--font-mono), "JetBrains Mono", "Courier New", monospace;
+  --orange: #ff9b51;
+  --orange-dim: #cc7b41;
+  --orange-glow: rgba(255, 155, 81, 0.25);
+  --yellow: #ff9b51;
+  --grey-bg: #25343f;
+  --grey-surface: #2d3e4b;
+  --grey-border: #4a5a67;
+  --grey-text: #eaefef;
+  --grey-muted: #4a5a67;
+  --font-mono: "Redline", "Orbit", "JetBrains Mono", monospace;
+  --font-logo: "Redline", sans-serif;
 }
 
 * {
