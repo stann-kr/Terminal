@@ -38,7 +38,23 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko" className={jetbrainsMono.variable}>
-      <body className="antialiased" suppressHydrationWarning>
+      <body
+        className="antialiased"
+        suppressHydrationWarning
+        style={
+          {
+            "--orange": COLORS.ORANGE,
+            "--orange-dim": COLORS.ORANGE_DIM,
+            "--orange-glow": COLORS.ORANGE_GLOW,
+            "--grey-bg": COLORS.GREY_BG,
+            "--grey-surface": COLORS.GREY_SURFACE,
+            "--grey-border": COLORS.GREY_BORDER,
+            "--grey-text": COLORS.GREY_TEXT,
+            "--grey-muted": COLORS.GREY_MUTED,
+            "--error": COLORS.ERROR,
+          } as React.CSSProperties
+        }
+      >
         <NoiseOverlay />
         {children}
       </body>
