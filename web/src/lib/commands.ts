@@ -38,9 +38,9 @@ const line = (
 /** 명령어 → 응답 라인 매핑 */
 const COMMAND_MAP: Record<string, (args?: string[]) => TerminalLine[]> = {
   help: () => [
-    line("┌──────────────────────────────────┐", "system"),
-    line("│ TERMINAL CORE / COMMAND INDEX    │", "system"),
-    line("└──────────────────────────────────┘", "system"),
+    line("┌──────────────────────────┐", "system"),
+    line("│ TERMINAL CORE INDEX      │", "system"),
+    line("└──────────────────────────┘", "system"),
     line("  [ INFORMATION ]", "system"),
     line("  about    — 프로젝트 개요 및 정보", "output"),
     line("  lineup   — 아티스트 라인업 조회", "output"),
@@ -55,9 +55,9 @@ const COMMAND_MAP: Record<string, (args?: string[]) => TerminalLine[]> = {
   ],
 
   about: () => [
-    line("┌──────────────────────────────────┐", "system"),
-    line("│ THE UNIVERSAL JOURNEY            │", "system"),
-    line("└──────────────────────────────────┘", "system"),
+    line("┌──────────────────────────┐", "system"),
+    line("│ THE UNIVERSAL JOURNEY    │", "system"),
+    line("└──────────────────────────┘", "system"),
     line("  TERMINAL은 미지의 구역으로 향하는 항해의 출발점이자, ", "output"),
     line("  기계적 신호와 감각이 교차하는 정거장입니다.", "output"),
     line(
@@ -96,33 +96,33 @@ const COMMAND_MAP: Record<string, (args?: string[]) => TerminalLine[]> = {
   ],
 
   lineup: () => [
-    line("┌──────────────────────────────────┐", "system"),
-    line("│ ARTIST MANIFEST / TERMINAL [01]  │", "system"),
-    line("└──────────────────────────────────┘", "system"),
+    line("┌──────────────────────────┐", "system"),
+    line("│ ARTIST MANIFEST [01]     │", "system"),
+    line("└──────────────────────────┘", "system"),
     line("  [01]  STANN LUMO", "success"),
     line("  [02]  MARCUS L", "success"),
     line("  [03]  NUSNOOM", "success"),
-    line("────────────────────────────────────", "system"),
+    line("────────────────────────────", "system"),
     line("  Genre: Hypnotic, Sci-Fi Techno", "output"),
     line(""),
   ],
 
   gate: () => [
-    line("┌──────────────────────────────────┐", "system"),
-    line("│ TARGET GATE / TERMINAL [01]      │", "system"),
-    line("└──────────────────────────────────┘", "system"),
-    line("  DATE      : 2026.03.07 (SAT)", "output"),
-    line("  VENUE     : Club Faust, Seoul", "output"),
-    line("  SECTOR    : The Hidden Layer", "output"),
-    line("────────────────────────────────────", "system"),
+    line("┌──────────────────────────┐", "system"),
+    line("│ TARGET GATE [01]         │", "system"),
+    line("└──────────────────────────┘", "system"),
+    line("  DATE  : 2026.03.07 (SAT)", "output"),
+    line("  VENUE : Club Faust, Seoul", "output"),
+    line("  SECTOR: The Hidden Layer", "output"),
+    line("────────────────────────────", "system"),
     line("  * Maiden Voyage to the Unknown Sector.", "output"),
     line(""),
   ],
 
   status: () => [
-    line("┌──────────────────────────────────┐", "system"),
-    line("│ SYSTEM STATUS REPORT             │", "system"),
-    line("└──────────────────────────────────┘", "system"),
+    line("┌──────────────────────────┐", "system"),
+    line("│ SYSTEM STATUS REPORT     │", "system"),
+    line("└──────────────────────────┘", "system"),
     line("  TERMINAL     [ OPERATIONAL ]", "success"),
     line("  MISSION      [ ACTIVE      ]", "success"),
     line("  HYPERDRIVE   [ CHARGING... ]", "output"),
@@ -134,9 +134,9 @@ const COMMAND_MAP: Record<string, (args?: string[]) => TerminalLine[]> = {
   ],
 
   link: () => [
-    line("┌──────────────────────────────────┐", "system"),
-    line("│ EXTERNAL COMMUNICATION LINKS     │", "system"),
-    line("└──────────────────────────────────┘", "system"),
+    line("┌──────────────────────────┐", "system"),
+    line("│ EXTERNAL LINKS           │", "system"),
+    line("└──────────────────────────┘", "system"),
     line(
       "  * Stann Lumo Instagram",
       "link",
@@ -151,9 +151,9 @@ const COMMAND_MAP: Record<string, (args?: string[]) => TerminalLine[]> = {
   ],
 
   whoami: () => [
-    line("┌──────────────────────────────────┐", "system"),
-    line("│ USER PROFILE / CREW MANIFEST     │", "system"),
-    line("└──────────────────────────────────┘", "system"),
+    line("┌──────────────────────────┐", "system"),
+    line("│ USER CREW MANIFEST       │", "system"),
+    line("└──────────────────────────┘", "system"),
     line("  USER   : guest", "output"),
     line("  ROLE   : traveler", "output"),
     line("  ACCESS : LEVEL 1 (RESTRICTED)", "output"),
@@ -161,9 +161,9 @@ const COMMAND_MAP: Record<string, (args?: string[]) => TerminalLine[]> = {
   ],
 
   sudo: () => [
-    line("┌──────────────────────────────────┐", "system"),
-    line("│ [ ERROR ] ACCESS DENIED.         │", "system"),
-    line("└──────────────────────────────────┘", "system"),
+    line("┌──────────────────────────┐", "system"),
+    line("│ [ ERROR ] ACCESS DENIED. │", "system"),
+    line("└──────────────────────────┘", "system"),
     line("  This incident has been reported to the central AI.", "error"),
     line(""),
   ],
