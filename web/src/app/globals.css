@@ -26,11 +26,11 @@
 
 html,
 body {
-  height: 100%;
+  height: 100dvh;
   background-color: var(--grey-bg);
   color: var(--grey-text);
   font-family: var(--font-mono);
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.6;
   overflow-x: hidden;
   overflow-y: auto;
@@ -240,7 +240,7 @@ body::after {
 @media (max-width: 640px) {
   html,
   body {
-    font-size: 12px;
+    font-size: 14px;
   }
 
   .terminal-center {
@@ -253,12 +253,19 @@ body::after {
   .cursor-blink {
     width: 6px;
   }
+
+  /* 🚨 모바일 입력창 자동 줌 방지 (최소 16px) */
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
 }
 
 @media (max-width: 375px) {
   html,
   body {
-    font-size: 11px;
+    font-size: 13px;
   }
 }
 
