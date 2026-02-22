@@ -1,0 +1,13 @@
+services:
+  web:
+    build: .
+    container_name: terminal-web
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./app:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - WATCHPACK_POLLING=true
+    working_dir: /app
