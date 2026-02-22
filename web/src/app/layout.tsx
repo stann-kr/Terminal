@@ -37,7 +37,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko" className={jetbrainsMono.variable}>
-      <body className="antialiased">
+      <body className="antialiased" suppressHydrationWarning>
         <NoiseOverlay />
         {children}
       </body>

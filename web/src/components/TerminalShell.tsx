@@ -111,6 +111,7 @@ export default function TerminalShell() {
   const [history, setHistory] = useState<TerminalLine[]>([]);
   const [isBooting, setIsBooting] = useState(true);
   const [input, setInput] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
   const [cmdHistory, setCmdHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -170,28 +171,44 @@ export default function TerminalShell() {
    * @param e - 폼 제출 이벤트
    */
   const handleSubmit = useCallback(
-    (e: React.FormEvent) => {
+    async (e: React.FormEvent) => {
       e.preventDefault();
       const cmd = input.trim();
-      if (!cmd) return;
+      if (!cmd || isBooting || isProcessing) return;
 
       // 입력 히스토리 저장
       setCmdHistory((prev) => [cmd, ...prev]);
       setHistoryIndex(-1);
+      setInput("");
+      setIsProcessing(true);
 
-      // 입력창에 표시될 라인
+      const { lines, shouldClear } = processCommand(cmd);
+
+      if (shouldClear) {
+        setHistory([]);
+        setIsProcessing(false);
+        return;
+      }
+
+      // 입력창에 표시될 라인 먼저 추가
       const inputLine: TerminalLine = {
         id: `in-${Date.now()}`,
         text: `> ${cmd}`,
         type: "input",
       };
+      setHistory((prev) => [...prev, inputLine]);
 
-      const { lines, shouldClear } = processCommand(cmd);
+      // 결과 라인들을 순차적으로 렌더링
+      for (const line of lines) {
+        // 100ms ~ 300ms 사이의 랜덤 지연으로 기계적인 느낌 부여
+        const delay = Math.floor(Math.random() * 200) + 100;
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        setHistory((prev) => [...prev, line]);
+      }
 
-      setHistory((prev) => (shouldClear ? [] : [...prev, inputLine, ...lines]));
-      setInput("");
+      setIsProcessing(false);
     },
-    [input],
+    [input, isBooting, isProcessing],
   );
 
   /**
@@ -250,7 +267,7 @@ export default function TerminalShell() {
             return (
               <div
                 key={line.id}
-                className={`font-mono text-sm leading-relaxed overflow-x-auto whitespace-pre scrollbar-hide ${LINE_COLOR[line.type]} ${isInput ? "mt-6 mb-1" : ""}`}
+                className={`font-mono text-sm leading-relaxed whitespace-pre-wrap break-words ${LINE_COLOR[line.type]} ${isInput ? "mt-6 mb-1" : ""}`}
               >
                 {line.text}
               </div>
@@ -265,7 +282,7 @@ export default function TerminalShell() {
             <span className="text-[var(--orange)] font-bold text-sm select-none">
               &gt;
             </span>
-            {isBooting ? (
+            {isBooting || isProcessing ? (
               <span className="cursor-blink w-2 h-4 bg-[var(--orange)] inline-block" />
             ) : (
               <form
