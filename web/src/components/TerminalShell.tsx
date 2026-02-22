@@ -43,13 +43,13 @@ const WELCOME_LINES: TerminalLine[] = [
   },
 ];
 
-/** 라인 타입에 따른 색상 클래스 매핑 */
 const LINE_COLOR: Record<TerminalLine["type"], string> = {
   system: "text-[#3a3a3a]",
   output: "text-[#c8c8c8]",
   success: "text-[#ff4500]",
   error: "text-[#ff6b6b]",
   input: "text-[#8a8a8a]",
+  link: "text-[#c8c8c8] hover:text-[#ff4500] hover:underline cursor-pointer transition-colors",
 };
 
 /**
@@ -146,14 +146,33 @@ export default function TerminalShell() {
 
         {/* 출력 히스토리 */}
         <div className="flex-1 overflow-y-auto space-y-1 pb-4 max-h-[60dvh]">
-          {history.map((line) => (
-            <p
-              key={line.id}
-              className={`font-mono text-sm leading-relaxed break-all ${LINE_COLOR[line.type]}`}
-            >
-              {line.text}
-            </p>
-          ))}
+          {history.map((line) => {
+            if (line.type === "link" && line.url) {
+              return (
+                <p
+                  key={line.id}
+                  className="font-mono text-sm leading-relaxed break-all"
+                >
+                  <a
+                    href={line.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={LINE_COLOR[line.type]}
+                  >
+                    {line.text}
+                  </a>
+                </p>
+              );
+            }
+            return (
+              <p
+                key={line.id}
+                className={`font-mono text-sm leading-relaxed break-all ${LINE_COLOR[line.type]}`}
+              >
+                {line.text}
+              </p>
+            );
+          })}
           <div ref={bottomRef} />
         </div>
 

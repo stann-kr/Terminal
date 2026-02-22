@@ -30,7 +30,7 @@ body {
   background-color: var(--grey-bg);
   color: var(--grey-text);
   font-family: var(--font-mono);
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1.6;
   overflow-x: hidden;
   overflow-y: auto;
@@ -240,14 +240,14 @@ body::after {
 @media (max-width: 640px) {
   html,
   body {
-    font-size: 14px;
+    font-size: 16px;
   }
 
   .terminal-center {
     padding: 1.5rem 1rem;
     justify-content: flex-start;
-    padding-top: env(safe-area-inset-top, 1.5rem);
-    padding-bottom: env(safe-area-inset-bottom, 1.5rem);
+    padding-top: max(2.5rem, env(safe-area-inset-top));
+    padding-bottom: max(2.5rem, env(safe-area-inset-bottom));
   }
 
   .cursor-blink {
@@ -265,7 +265,7 @@ body::after {
 @media (max-width: 375px) {
   html,
   body {
-    font-size: 13px;
+    font-size: 14px;
   }
 }
 

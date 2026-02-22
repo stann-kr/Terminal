@@ -5,22 +5,34 @@
  * type: 'output' | 'error' | 'success' | 'system'
  */
 
-export type LineType = "output" | "error" | "success" | "system" | "input";
+export type LineType =
+  | "output"
+  | "error"
+  | "success"
+  | "system"
+  | "input"
+  | "link";
 
 export interface TerminalLine {
   id: string;
   text: string;
   type: LineType;
+  url?: string;
 }
 
 /** 고유 ID 생성 유틸리티 */
 const uid = () => `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
 /** 단일 라인 생성 헬퍼 */
-const line = (text: string, type: LineType = "output"): TerminalLine => ({
+const line = (
+  text: string,
+  type: LineType = "output",
+  url?: string,
+): TerminalLine => ({
   id: uid(),
   text,
   type,
+  url,
 });
 
 /** 명령어 → 응답 라인 매핑 */
@@ -32,6 +44,7 @@ const COMMAND_MAP: Record<string, () => TerminalLine[]> = {
     line("  lineup   — 아티스트 라인업 조회", "output"),
     line("  gate     — 게이트(장소/일시) 정보", "output"),
     line("  status   — 시스템 가동 상태 확인", "output"),
+    line("  link     — 외부 연결 링크 제공", "output"),
     line("  clear    — 터미널 출력 초기화", "output"),
     line("─────────────────────────────────", "system"),
   ],
@@ -68,6 +81,23 @@ const COMMAND_MAP: Record<string, () => TerminalLine[]> = {
     line(
       `  TIMESTAMP      : ${new Date().toISOString().replace("T", " ").slice(0, 19)} UTC`,
       "output",
+    ),
+    line("─────────────────────────────────", "system"),
+  ],
+
+  link: () => [
+    line("─────────────────────────────────", "system"),
+    line("  EXTERNAL LINKS", "system"),
+    line("─────────────────────────────────", "system"),
+    line(
+      "  * Stann Lumo Instagram",
+      "link",
+      "https://www.instagram.com/stannlumo/",
+    ),
+    line(
+      "  * Terminal Instagram",
+      "link",
+      "https://www.instagram.com/terminal_hub/",
     ),
     line("─────────────────────────────────", "system"),
   ],
