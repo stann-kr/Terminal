@@ -73,7 +73,7 @@ html::before {
   width: 120%;
   height: 120%;
   pointer-events: none;
-  z-index: -2; /* 가장 아래 배경 */
+  z-index: -10; /* 가장 아래 배경 */
   opacity: 0.04;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
   animation: global-noise-anim 0.2s steps(1) infinite;
@@ -82,16 +82,17 @@ html::before {
 html {
   background-color: var(--grey-bg);
   min-height: 100%;
+  overscroll-behavior: none; /* 시스템 바운스 시 배경 깨짐 방지 */
 }
 
 /* ── Global CRT Scanlines (Foreground) ── */
-/* html::after로 격상하여 iOS 상태바 및 하단 영역까지 완벽 커버 */
+/* html::after로 격상하여 이펙트가 텍스트 뒤(Background)에 오도록 z-index 하향 */
 html::after {
   content: "";
   position: fixed;
   inset: 0;
   pointer-events: none;
-  z-index: 100; /* 체계적인 레이어 값 (기존 10001 하향) */
+  z-index: -5; /* 노이즈(-10) 보다는 위, 텍스트(0) 보다는 아래 */
   background: linear-gradient(
     to bottom,
     transparent 50%,
@@ -113,22 +114,7 @@ body {
   overflow: hidden;
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
-}
-
-/* ── CRT Scanline + Noise Overlay ── */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  pointer-events: none;
-  background-image: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0, 0, 0, 0.07) 2px,
-    rgba(0, 0, 0, 0.07) 4px
-  );
+  z-index: 0; /* 이펙트(-10, -5) 보다 위에 오도록 설정 */
 }
 
 /* ── Scrollbar ── */

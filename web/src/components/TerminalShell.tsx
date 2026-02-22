@@ -120,6 +120,23 @@ export default function TerminalShell() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // 터미널 하단 고정 스크롤 (모바일/키보드 환경 최적화)
+  const scrollToBottom = useCallback((smooth = true) => {
+    if (!bottomRef.current) return;
+
+    // 1. scrollIntoView 방식 (부드러운 이동)
+    bottomRef.current.scrollIntoView({
+      behavior: smooth ? "smooth" : "auto",
+      block: "end",
+    });
+
+    // 2. scrollTop 직접 제어 (강제 하단 고정 - 모바일 브라우저 호환성)
+    const container = bottomRef.current.parentElement;
+    if (container) {
+      container.scrollTop = container.scrollHeight;
+    }
+  }, []);
+
   /**
    * 공용 렌더링 함수: 여러 줄의 문자열을 한 글자씩 타이핑하듯 부드럽게 출력합니다.
    * system, error, success 등 컬러풀 비주얼은 라인 단위로 바로 출력하여 속도를 보장하고,
@@ -130,7 +147,6 @@ export default function TerminalShell() {
       for (const line of linesToRender) {
         if (!isMounted.current) return;
 
-        // 시스템, 에러 라인은 너무 느리면 답답하므로 통째로 렌더링하거나 아주 빠른 속도로 스킵
         if (line.type !== "output" && line.type !== "input") {
           const delay = fastMode
             ? Math.floor(Math.random() * 20) + 10
@@ -138,13 +154,11 @@ export default function TerminalShell() {
           await new Promise((r) => setTimeout(r, delay));
           if (!isMounted.current) return;
           setHistory((prev) => [...prev, line]);
+          scrollToBottom(false); // 루프 중에는 즉각적인 위치 보정 (auto)
         } else {
-          // Output 라인은 한 글자씩 타이핑 효과
           const newLineId = `idx-${Date.now()}-${Math.random()}`;
-          // 일단 빈 라인을 밀어넣음
           setHistory((prev) => [...prev, { ...line, id: newLineId, text: "" }]);
 
-          // 한 글자씩 채워나감
           for (let i = 0; i <= line.text.length; i++) {
             if (!isMounted.current) return;
             setHistory((prev) =>
@@ -152,6 +166,10 @@ export default function TerminalShell() {
                 h.id === newLineId ? { ...h, text: line.text.slice(0, i) } : h,
               ),
             );
+
+            // 타자기 진행 시 실시간 스크롤 고정
+            scrollToBottom(false);
+
             const typingSpeed = fastMode
               ? Math.floor(Math.random() * 5) + 2
               : Math.floor(Math.random() * 20) + 10;
@@ -160,7 +178,7 @@ export default function TerminalShell() {
         }
       }
     },
-    [],
+    [scrollToBottom],
   );
 
   // 브라우저 콘솔 이스터 에그 및 부팅 시퀀스
@@ -198,18 +216,10 @@ export default function TerminalShell() {
     };
   }, [renderLines]);
 
-  // 터미널 하단 고정 스크롤 (키보드 등장 대비)
-  const scrollToBottom = useCallback(() => {
-    // 키보드 애니메이션 시간을 고려한 지연 호출
-    setTimeout(() => {
-      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, 150);
-  }, []);
-
   // 새 라인 추가 시 스크롤 하단 이동
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [history]);
+    scrollToBottom();
+  }, [history, scrollToBottom]);
 
   // 화면 클릭 시 입력창 포커스
   const handleContainerClick = (e: React.MouseEvent) => {
@@ -235,6 +245,9 @@ export default function TerminalShell() {
       setIsProcessing(true);
       inputRef.current?.blur(); // iOS 타이핑 종료 직후 명시적으로 키보드 가리기
 
+      // [추가] 명령어 실행 즉시 하단 공간 확보
+      scrollToBottom();
+
       const { lines, shouldClear } = processCommand(cmd);
 
       if (shouldClear) {
@@ -257,7 +270,7 @@ export default function TerminalShell() {
       if (!isMounted.current) return;
       setIsProcessing(false);
     },
-    [isBooting, isProcessing, renderLines],
+    [isBooting, isProcessing, renderLines, scrollToBottom],
   );
 
   /**
@@ -362,7 +375,7 @@ export default function TerminalShell() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                onFocus={scrollToBottom}
+                onFocus={() => scrollToBottom()}
                 onBlur={() => {
                   // iOS 15+ 에서는 interactiveWidget 속성이 레이아웃을 잡아주므로,
                   // 강제로 scrollTo(0,0)을 호출하면 오히려 뷰포트가 어긋나 로고 상단 여백이 남는 버그가 발생합니다.
