@@ -24,7 +24,8 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   interactiveWidget: "resizes-content",
-  themeColor: "#1a1a1a",
+  themeColor: "#25343f",
+  viewportFit: "cover",
 };
 
 import NoiseOverlay from "@/components/NoiseOverlay";

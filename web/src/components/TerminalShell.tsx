@@ -221,7 +221,7 @@ export default function TerminalShell() {
     >
       <div className="terminal-box gap-y-5">
         <div className="shrink-0">
-          <div className="glitch-container fade-in" data-text="">
+          <div className="fade-in">
             <Logo />
           </div>
         </div>
@@ -248,12 +248,12 @@ export default function TerminalShell() {
             }
             const isInput = line.type === "input";
             return (
-              <p
+              <div
                 key={line.id}
-                className={`font-mono text-sm leading-relaxed break-all ${LINE_COLOR[line.type]} ${isInput ? "mt-6 mb-1" : ""}`}
+                className={`font-mono text-sm leading-relaxed overflow-x-auto whitespace-pre scrollbar-hide ${LINE_COLOR[line.type]} ${isInput ? "mt-6 mb-1" : ""}`}
               >
                 {line.text}
-              </p>
+              </div>
             );
           })}
           <div ref={bottomRef} />

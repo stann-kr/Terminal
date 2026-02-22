@@ -153,30 +153,9 @@ body::before {
     transform: translate(0);
   }
 }
-.glitch-container {
-  position: relative;
-}
-.glitch-container::before,
-.glitch-container::after {
-  content: attr(data-text);
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-}
-.glitch-container:hover::before {
-  opacity: 0.7;
-  color: var(--orange);
-  animation: glitch-clip1 0.3s steps(1) infinite;
-  left: 2px;
-}
-.glitch-container:hover::after {
-  opacity: 0.5;
-  color: #00ffff;
-  animation: glitch-clip1 0.35s steps(1) infinite reverse;
-  left: -2px;
-}
 .glitch-container:hover {
-  animation: glitch-skew 0.3s ease-in-out infinite;
+  opacity: 0.85;
+  transition: opacity 0.2s ease;
 }
 
 /* ── Screen Flicker ── */
@@ -247,7 +226,7 @@ body::before {
   }
 
   .terminal-center {
-    padding: 1.5rem 1rem;
+    padding: 1.5rem 0.5rem;
     justify-content: flex-start;
     padding-top: max(2.5rem, env(safe-area-inset-top));
     padding-bottom: max(2.5rem, env(safe-area-inset-bottom));
@@ -268,8 +247,17 @@ body::before {
 @media (max-width: 375px) {
   html,
   body {
-    font-size: 14px;
+    font-size: 13px;
   }
+}
+
+/* ── Hide Scrollbar 유틸리티 ── */
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
 }
 
 /* ── Safe area support (notch devices) ── */

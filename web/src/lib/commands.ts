@@ -101,7 +101,7 @@ const COMMAND_MAP: Record<string, (args?: string[]) => TerminalLine[]> = {
     line("└──────────────────────────────────┘", "system"),
     line("  [01]  STANN LUMO", "success"),
     line("  [02]  MARCUS L", "success"),
-    line("  [03]  MOONSUN", "success"),
+    line("  [03]  NUSNOOM", "success"),
     line("────────────────────────────────────", "system"),
     line("  Genre: Hypnotic, Sci-Fi Techno", "output"),
     line(""),

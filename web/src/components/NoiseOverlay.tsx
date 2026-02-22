@@ -63,7 +63,7 @@ export default function NoiseOverlay() {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 w-full h-full opacity-15 pointer-events-none z-[10000]"
+      className="fixed inset-0 w-full h-full opacity-10 pointer-events-none z-[10000]"
       style={{
         mixBlendMode: "screen",
         imageRendering: "pixelated",
