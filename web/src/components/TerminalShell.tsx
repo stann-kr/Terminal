@@ -1,7 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { type TerminalLine, processCommand } from "@/lib/commands";
+import {
+  type TerminalLine,
+  type LineType,
+  processCommand,
+} from "@/lib/commands";
 import Logo from "./Logo";
 
 /** 이스터 에그: 브라우저 콘솔에 출력될 ASCII 메시지 */
@@ -15,12 +19,12 @@ const EASTER_EGG = `
    ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝
 
   >> ACCESS GRANTED. WELCOME TO THE UNKNOWN SECTOR. <<
-  >> MAIDEN VOYAGE — 2026.03.07 / CLUB FAUST, SEOUL <<
+  >> MAIDEN VOYAGE <<
   >> You have discovered the hidden layer. Good job, traveler. <<
 `;
 
 /** 초기 환영 메시지 */
-const WELCOME_LINES: TerminalLine[] = [
+const WELCOME_MESSAGES: TerminalLine[] = [
   {
     id: "w-0",
     text: "─────────────────────────────────────────",
@@ -28,7 +32,7 @@ const WELCOME_LINES: TerminalLine[] = [
   },
   {
     id: "w-1",
-    text: "  TERMINAL [01] — ACCESS GRANTED",
+    text: "  TERMINAL CORE SYSTEM — ACCESS GRANTED",
     type: "success",
   },
   {
@@ -41,72 +45,106 @@ const WELCOME_LINES: TerminalLine[] = [
     text: "─────────────────────────────────────────",
     type: "system",
   },
+];
+
+/** 부팅 시퀀스 타이밍 데이터 */
+const BOOT_LINES: { text: string; delay: number; type: LineType }[] = [
+  { text: "TERMINAL CORE — SYSTEM BOOT INITIATED", delay: 0, type: "system" },
+  { text: "...", delay: 150, type: "system" },
+  { text: "[ OK ] Loading kernel modules...", delay: 350, type: "output" },
+  { text: "[ OK ] Mounting hyperdrive array...", delay: 600, type: "output" },
   {
-    id: "w-4",
-    text: "  TERMINAL [01] / COMMAND INDEX",
+    text: "[ OK ] Initializing navigation matrix...",
+    delay: 900,
+    type: "output",
+  },
+  {
+    text: "[ OK ] Calibrating frequency bands...",
+    delay: 1200,
+    type: "output",
+  },
+  { text: "[ -- ] Scanning for crew manifest...", delay: 1500, type: "system" },
+  {
+    text: "[ OK ] Crew loaded: 3 personnel confirmed.",
+    delay: 1800,
+    type: "output",
+  },
+  { text: "[ -- ] Verifying gate coordinates...", delay: 2100, type: "system" },
+  {
+    text: "[ OK ] Gate: Club Faust, Seoul / 2026.03.07",
+    delay: 2450,
+    type: "output",
+  },
+  { text: "...", delay: 2800, type: "system" },
+  {
+    text: "─────────────────────────────────────────",
+    delay: 3000,
     type: "system",
   },
+  { text: "  STATUS: OPERATIONAL", delay: 3200, type: "success" },
   {
-    id: "w-5",
+    text: "  Maiden Voyage to the Unknown Sector.",
+    delay: 3450,
+    type: "success",
+  },
+  {
     text: "─────────────────────────────────────────",
-    type: "system",
-  },
-  {
-    id: "w-6",
-    text: "  lineup   — 아티스트 라인업 조회",
-    type: "output",
-  },
-  {
-    id: "w-7",
-    text: "  gate     — 게이트(장소/일시) 정보",
-    type: "output",
-  },
-  {
-    id: "w-8",
-    text: "  status   — 시스템 가동 상태 확인",
-    type: "output",
-  },
-  {
-    id: "w-9",
-    text: "  link     — 외부 연결 링크 제공",
-    type: "output",
-  },
-  {
-    id: "w-10",
-    text: "  clear    — 터미널 출력 초기화",
-    type: "output",
-  },
-  {
-    id: "w-11",
-    text: "─────────────────────────────────────────",
+    delay: 3650,
     type: "system",
   },
 ];
 
 const LINE_COLOR: Record<TerminalLine["type"], string> = {
-  system: "text-[#3a3a3a]",
-  output: "text-[#c8c8c8]",
-  success: "text-[#ff4500]",
+  system: "text-[#4d5162]",
+  output: "text-[#efecec]",
+  success: "text-[#fc6736]",
   error: "text-[#ff6b6b]",
-  input: "text-[#8a8a8a]",
-  link: "text-[#c8c8c8] hover:text-[#ff4500] hover:underline cursor-pointer transition-colors",
+  input: "text-[#fc6736] font-bold",
+  link: "text-[#efecec] hover:text-[#fc6736] hover:underline cursor-pointer transition-colors",
 };
 
 /**
  * 터미널 셸 컴포넌트.
- * 부팅 완료 후 렌더링되며, 로고 + 출력 히스토리 + 입력창으로 구성됩니다.
+ * 로고 + 출력 히스토리 + 입력창으로 구성됩니다.
  */
 export default function TerminalShell() {
-  const [history, setHistory] = useState<TerminalLine[]>(WELCOME_LINES);
+  const [history, setHistory] = useState<TerminalLine[]>([]);
+  const [isBooting, setIsBooting] = useState(true);
   const [input, setInput] = useState("");
   const [cmdHistory, setCmdHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // 이스터 에그 콘솔 출력
+  // 브라우저 콘솔 이스터 에그 및 부팅 시퀀스
   useEffect(() => {
     console.log(EASTER_EGG, "color: #ff4500; font-weight: bold;");
+
+    const timers: ReturnType<typeof setTimeout>[] = [];
+
+    // 부팅 시퀀스 라인 하나씩 추가
+    BOOT_LINES.forEach((item, index) => {
+      const t = setTimeout(() => {
+        setHistory((prev) => [
+          ...prev,
+          { id: `boot-${index}`, text: item.text, type: item.type },
+        ]);
+      }, item.delay);
+      timers.push(t);
+    });
+
+    // 부팅 종료 후 환영메시지와 도움말 출력, 입력창 활성화
+    const completeTimer = setTimeout(
+      () => {
+        const { lines } = processCommand("help");
+        setHistory((prev) => [...prev, ...WELCOME_MESSAGES, ...lines]);
+        setIsBooting(false);
+      },
+      BOOT_LINES[BOOT_LINES.length - 1].delay + 1000,
+    );
+    timers.push(completeTimer);
+
+    return () => timers.forEach(clearTimeout);
   }, []);
 
   // 터미널 하단 고정 스크롤 (키보드 등장 대비)
@@ -181,15 +219,11 @@ export default function TerminalShell() {
       className="terminal-center cursor-text screen-flicker"
       onClick={handleContainerClick}
     >
-      <div className="terminal-box">
-        {/* 로고 */}
-        <div className="mb-6 shrink-0">
+      <div className="terminal-box gap-y-5">
+        <div className="shrink-0">
           <div className="glitch-container fade-in" data-text="">
             <Logo />
           </div>
-          <p className="text-[#6a6a6a] text-xs mt-3 tracking-widest">
-            THE UNIVERSAL JOURNEY OF STANN LUMO
-          </p>
         </div>
 
         {/* 출력 히스토리 (터미널 내부에서만 스크롤) */}
@@ -212,10 +246,11 @@ export default function TerminalShell() {
                 </p>
               );
             }
+            const isInput = line.type === "input";
             return (
               <p
                 key={line.id}
-                className={`font-mono text-sm leading-relaxed break-all ${LINE_COLOR[line.type]}`}
+                className={`font-mono text-sm leading-relaxed break-all ${LINE_COLOR[line.type]} ${isInput ? "mt-6 mb-1" : ""}`}
               >
                 {line.text}
               </p>
@@ -224,41 +259,47 @@ export default function TerminalShell() {
           <div ref={bottomRef} />
         </div>
 
-        {/* 입력창 */}
-        <div className="mt-4 shrink-0 pb-2">
-          <div className="border-t border-[#3a3a3a] pt-4">
-            <form onSubmit={handleSubmit} className="flex items-center gap-2">
-              <span className="text-[#ff4500] font-bold text-sm select-none">
-                &gt;
-              </span>
-              <input
-                ref={inputRef}
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                onFocus={scrollToBottom}
-                onBlur={() => {
-                  // 키보드가 닫혔을 때 빈 공간이 남는 iOS 버그 복구
-                  setTimeout(() => {
-                    window.scrollTo(0, 0);
-                    document.body.scrollTop = 0;
-                  }, 10);
-                }}
-                autoFocus
-                autoComplete="off"
-                autoCorrect="off"
-                spellCheck={false}
-                placeholder="enter command..."
-                className="
-                  flex-1 bg-transparent border-none outline-none
-                  font-mono text-sm text-[#c8c8c8]
-                  placeholder:text-[#3a3a3a]
-                  caret-[#ff4500]
-                "
-              />
-              <span className="cursor-blink" />
-            </form>
+        {/* 입력창 (부팅 중엔 막기) */}
+        <div className="mt-4 shrink-0 pb-2 h-14">
+          <div className="border-t border-[#3a3a3a] pt-4 flex items-center gap-2">
+            <span className="text-[#ff4500] font-bold text-sm select-none">
+              &gt;
+            </span>
+            {isBooting ? (
+              <span className="cursor-blink w-2 h-4 bg-[#fc6736] inline-block" />
+            ) : (
+              <form
+                onSubmit={handleSubmit}
+                className="flex-1 flex items-center"
+              >
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  onFocus={scrollToBottom}
+                  onBlur={() => {
+                    setTimeout(() => {
+                      window.scrollTo(0, 0);
+                      document.body.scrollTop = 0;
+                    }, 10);
+                  }}
+                  autoFocus
+                  autoComplete="off"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  placeholder="enter command..."
+                  className="
+                    flex-1 bg-transparent border-none outline-none
+                    font-mono text-sm text-[#efecec]
+                    placeholder:text-[#2d2d3a]
+                    caret-[#fc6736]
+                  "
+                />
+                <span className="cursor-blink" />
+              </form>
+            )}
           </div>
         </div>
       </div>
