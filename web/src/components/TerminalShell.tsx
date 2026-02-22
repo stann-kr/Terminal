@@ -172,8 +172,9 @@ export default function TerminalShell() {
 
   // 화면 클릭 시 입력창 포커스
   const handleContainerClick = (e: React.MouseEvent) => {
-    // 입력창 자체를 직접 터치한 경우에는 네이티브 동작에 맡김
-    if (e.target !== inputRef.current && !isBooting && !isProcessing) {
+    // 버튼, 링크, 입력창 등 개별 인터랙션이 필요한 요소를 직접 터치한 경우에는 강제 포커스 무시
+    const target = e.target as HTMLElement;
+    if (!target.closest("button, a, input") && !isBooting && !isProcessing) {
       inputRef.current?.focus();
     }
   };
@@ -301,46 +302,53 @@ export default function TerminalShell() {
         </div>
 
         {/* 입력창 (부팅 중엔 막기) */}
-        <div className="mt-4 shrink-0 pb-2 h-4">
-          <div className="border-t border-[#3a3a3a] pt-4 flex items-center gap-2">
+        <div className="mt-4 shrink-0 pb-2">
+          <div className="border-t border-[#3a3a3a] pt-4 flex items-center gap-2 relative">
             <span className="text-[var(--orange)] font-bold text-sm select-none">
               &gt;
             </span>
-            {isBooting || isProcessing ? (
-              <span className="cursor-blink w-2 h-4 bg-[var(--orange)] inline-block" />
-            ) : (
-              <form
-                onSubmit={handleSubmit}
-                className="flex-1 flex items-center"
-              >
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  onFocus={scrollToBottom}
-                  onBlur={() => {
-                    setTimeout(() => {
-                      window.scrollTo(0, 0);
-                      document.body.scrollTop = 0;
-                    }, 10);
-                  }}
-                  autoFocus
-                  autoComplete="off"
-                  autoCorrect="off"
-                  autoCapitalize="none"
-                  spellCheck={false}
-                  placeholder="enter command..."
-                  className="
+            {/* 처리 중일 때: 단일 블록 커서 */}
+            {(isBooting || isProcessing) && (
+              <span className="cursor-blink w-2 h-4 bg-[var(--orange)] inline-block absolute ml-5" />
+            )}
+
+            {/* 실제 폼과 입력창은 숨기기만 하고 DOM에서 제거하지 않음 */}
+            <form
+              onSubmit={handleSubmit}
+              className={`flex-1 flex items-center transition-opacity duration-200 ${
+                isBooting || isProcessing
+                  ? "opacity-0 pointer-events-none"
+                  : "opacity-100"
+              }`}
+            >
+              <input
+                ref={inputRef}
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                onFocus={scrollToBottom}
+                onBlur={() => {
+                  setTimeout(() => {
+                    window.scrollTo(0, 0);
+                    document.body.scrollTop = 0;
+                  }, 10);
+                }}
+                autoFocus
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                placeholder="enter command..."
+                className="
                     flex-1 bg-transparent border-none outline-none
                     font-mono text-sm text-[var(--grey-text)]
                     placeholder:text-[var(--grey-border)]
                     caret-[var(--orange)]
                   "
-                />
-              </form>
-            )}
+              />
+              <span className="cursor-blink" />
+            </form>
           </div>
         </div>
 
