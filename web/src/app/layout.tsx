@@ -18,9 +18,7 @@ export const metadata: Metadata = {
     type: "website",
   },
   appleWebApp: {
-    capable: true,
-    statusBarStyle: "black-translucent",
-    title: "TERMINAL",
+    capable: false,
   },
 };
 
@@ -31,7 +29,6 @@ export const viewport: Viewport = {
   userScalable: false,
   interactiveWidget: "resizes-content",
   themeColor: COLORS.GREY_BG,
-  viewportFit: "cover",
 };
 
 export default function RootLayout({
