@@ -17,6 +17,11 @@ export const metadata: Metadata = {
     description: "THE UNIVERSAL JOURNEY OF STANN LUMO.",
     type: "website",
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "TERMINAL",
+  },
 };
 
 export const viewport: Viewport = {

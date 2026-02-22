@@ -28,59 +28,61 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/* ── Global Texture Animation (Native Background) ── */
-/* 가상 요소 대신 html 배경의 위치를 직접 조절하여 시스템 영역까지 노이즈 투영 */
-@keyframes global-texture-anim {
+/* ── iOS Safe Area Overlay (Foreground) ── */
+/* 가상 요소를 사용하여 시스템 영역(상태바/홈바)까지 질감을 투영합니다. */
+@keyframes global-noise-anim {
   0% {
-    background-position:
-      0 0,
-      0 0;
+    transform: translate(0, 0);
   }
   20% {
-    background-position:
-      0 0,
-      15px 15px;
+    transform: translate(-1%, -1%);
   }
   40% {
-    background-position:
-      0 0,
-      -10px 5px;
+    transform: translate(1%, 1%);
   }
   60% {
-    background-position:
-      0 0,
-      5px -10px;
+    transform: translate(-2%, 1%);
   }
   80% {
-    background-position:
-      0 0,
-      -15px -15px;
+    transform: translate(2%, -1%);
   }
   100% {
-    background-position:
-      0 0,
-      0 0;
+    transform: translate(0, 0);
   }
+}
+
+html::before {
+  content: "";
+  position: fixed;
+  inset: -20%; /* 시스템 영역 밖까지 질감을 극단적으로 확장 */
+  width: 140%;
+  height: 140%;
+  pointer-events: none;
+  z-index: 1; /* html 배경색 위, body 아래 */
+  opacity: 0.12; /* 가시성 확보를 위해 노이즈 강도 상향 */
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  animation: global-noise-anim 0.2s steps(1) infinite;
+}
+
+html::after {
+  content: "";
+  position: fixed;
+  inset: -20%;
+  pointer-events: none;
+  z-index: 2;
+  background: linear-gradient(
+    to bottom,
+    transparent 50%,
+    rgba(0, 0, 0, 0.12) 50%
+  );
+  background-size: 100% 4px;
 }
 
 html {
   background-color: var(--grey-bg);
-  /* 다중 배경 레이어: 1. 가로선(상단) 2. 노이즈(중단) 3. 배경색(하단) */
-  background-image:
-    linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.12) 50%),
-    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-  background-size:
-    100% 4px,
-    200px 200px;
-  background-repeat: repeat, repeat;
-  background-attachment: fixed;
-
   min-height: 100%;
   min-height: -webkit-fill-available;
   overscroll-behavior: none;
-
-  /* 노이즈 질감 애니메이션 실행 */
-  animation: global-texture-anim 0.2s steps(1) infinite;
 }
 
 body {
@@ -236,10 +238,13 @@ body {
 .terminal-center {
   display: flex;
   flex-direction: column;
-  height: 100dvh; /* resizes-content 메타 속성에 의해 키보드 영역 제외 높이로 자동 리사이즈 됨 */
+  height: 100dvh;
   justify-content: center;
   align-items: center;
   padding: 2rem 1.5rem;
+  /* black-translucent 모드에서 상태바 영역(시계 등)과 로고가 겹치지 않도록 패딩 강제 추가 */
+  padding-top: max(2rem, env(safe-area-inset-top, 20px));
+  padding-bottom: max(2rem, env(safe-area-inset-bottom, 20px));
   overflow: hidden;
 }
 
