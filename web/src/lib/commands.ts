@@ -44,7 +44,7 @@ const COMMAND_MAP: Record<string, () => TerminalLine[]> = {
     line("  [02]  STANN LUMO", "success"),
     line("  [03]  MOONSUN", "success"),
     line("─────────────────────────────────", "system"),
-    line("  Genre: Hypnotic · Sci-Fi · Futuristic Techno", "output"),
+    line("  Genre: Techno", "output"),
   ],
 
   gate: () => [

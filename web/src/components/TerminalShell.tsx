@@ -140,7 +140,7 @@ export default function TerminalShell() {
             <Logo />
           </div>
           <p className="text-[#6a6a6a] text-xs mt-3 tracking-widest">
-            MAIDEN VOYAGE TO THE UNKNOWN SECTOR
+            THE UNIVERSAL JOURNEY OF STANN LUMO
           </p>
         </div>
 

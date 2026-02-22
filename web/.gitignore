@@ -19,7 +19,3 @@ out/
 # Un-ignore specific hidden files/folders if needed
 !/.gitignore
 !/.dockerignore
-
-# Root level specific ignores
-.agents/
-.docs/

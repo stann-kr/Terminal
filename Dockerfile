@@ -3,7 +3,7 @@ FROM node:22-alpine
 WORKDIR /app
 
 # 패키지 파일만 먼저 복사하여 레이어 캐싱 활용
-COPY app/package*.json ./
+COPY web/package*.json ./
 
 RUN npm install
 
