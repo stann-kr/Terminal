@@ -344,7 +344,7 @@ export default function TerminalShell() {
             </span>
             {/* 처리 중일 때: 단일 블록 커서 */}
             {(isBooting || isProcessing) && (
-              <span className="cursor-blink w-2 h-4 bg-[var(--orange)] inline-block absolute ml-5" />
+              <span className="cursor-blink w-2 h-4 bg-[var(--orange)] inline-block absolute left-[0.5rem]" />
             )}
 
             {/* 실제 폼과 입력창은 숨기기만 하고 DOM에서 제거하지 않음 */}
@@ -385,7 +385,7 @@ export default function TerminalShell() {
                 className={`
                   cursor-blink w-2 h-4 bg-[var(--orange)] 
                   opacity-0 peer-focus:opacity-100 transition-opacity duration-100
-                  ${input.length === 0 ? "absolute left-[1.5rem]" : "inline-block"}
+                  ${input.length === 0 ? "absolute left-[0.5rem]" : "inline-block"}
                 `}
               />
             </form>

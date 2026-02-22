@@ -41,10 +41,10 @@ export default function NoiseOverlay() {
       const buffer32 = new Uint32Array(idata.data.buffer);
 
       for (let i = 0; i < buffer32.length; i++) {
-        // 무작위 픽셀 생성 (Alpha 값을 높여 더 밝게 처리)
-        // 0x30ffffff: Alpha=48 (기존 대비 약 2배 밝기)
-        if (Math.random() < 0.06) {
-          buffer32[i] = 0x30ffffff;
+        // 무작위 픽셀 생성 (Alpha 값을 더욱 높여 뚜렷하게 처리)
+        // 0x50ffffff: Alpha=80 (기존 0x30 대비 약 1.6배 선명도)
+        if (Math.random() < 0.08) {
+          buffer32[i] = 0x20ffffff;
         }
       }
 
@@ -63,7 +63,7 @@ export default function NoiseOverlay() {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 w-full h-full opacity-10 pointer-events-none z-[10000]"
+      className="fixed inset-0 w-full h-full opacity-[0.12] pointer-events-none z-[10000]"
       style={{
         mixBlendMode: "screen",
         imageRendering: "pixelated",
