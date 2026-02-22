@@ -18,7 +18,8 @@ export const metadata: Metadata = {
     type: "website",
   },
   appleWebApp: {
-    capable: false,
+    capable: true,
+    statusBarStyle: "black-translucent",
   },
 };
 
@@ -28,6 +29,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   interactiveWidget: "resizes-content",
+  viewportFit: "cover",
   themeColor: COLORS.GREY_BG,
 };
 

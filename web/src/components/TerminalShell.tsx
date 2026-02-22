@@ -412,7 +412,7 @@ export default function TerminalShell() {
               key={cmd}
               onClick={() => executeCommand(cmd)}
               disabled={isBooting || isProcessing}
-              style={{ paddingLeft: "0.5rem", paddingRight: "0.5rem" }}
+              style={{ paddingLeft: "0.25rem", paddingRight: "0.25rem" }}
               className="
                 py-1.5 border border-[var(--grey-border)] text-[var(--grey-text)] text-xs font-mono uppercase tracking-widest
                 transition-all duration-200
