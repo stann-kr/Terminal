@@ -95,12 +95,12 @@ const BOOT_LINES: { text: string; delay: number; type: LineType }[] = [
 ];
 
 const LINE_COLOR: Record<TerminalLine["type"], string> = {
-  system: "text-[#4A5A67]",
-  output: "text-[#EAEFEF]",
-  success: "text-[#FF9B51]",
-  error: "text-[#ff6b6b]",
-  input: "text-[#FF9B51] font-bold",
-  link: "text-[#EAEFEF] hover:text-[#FF9B51] hover:underline cursor-pointer transition-colors",
+  system: "text-[var(--grey-muted)]",
+  output: "text-[var(--grey-text)]",
+  success: "text-[var(--orange)]",
+  error: "text-[var(--error)]",
+  input: "text-[var(--orange)] font-bold",
+  link: "text-[var(--grey-text)] hover:text-[var(--orange)] hover:underline cursor-pointer transition-colors",
 };
 
 /**
@@ -112,6 +112,7 @@ export default function TerminalShell() {
   const [isBooting, setIsBooting] = useState(true);
   const [input, setInput] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const isMounted = useRef(true);
   const [cmdHistory, setCmdHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -119,6 +120,7 @@ export default function TerminalShell() {
 
   // 브라우저 콘솔 이스터 에그 및 부팅 시퀀스
   useEffect(() => {
+    isMounted.current = true;
     console.log(EASTER_EGG, "color: #ff4500; font-weight: bold;");
 
     const timers: ReturnType<typeof setTimeout>[] = [];
@@ -126,6 +128,7 @@ export default function TerminalShell() {
     // 부팅 시퀀스 라인 하나씩 추가
     BOOT_LINES.forEach((item, index) => {
       const t = setTimeout(() => {
+        if (!isMounted.current) return;
         setHistory((prev) => [
           ...prev,
           { id: `boot-${index}`, text: item.text, type: item.type },
@@ -137,6 +140,7 @@ export default function TerminalShell() {
     // 부팅 종료 후 환영메시지와 도움말 출력, 입력창 활성화
     const completeTimer = setTimeout(
       () => {
+        if (!isMounted.current) return;
         const { lines } = processCommand("help");
         setHistory((prev) => [...prev, ...WELCOME_MESSAGES, ...lines]);
         setIsBooting(false);
@@ -145,7 +149,10 @@ export default function TerminalShell() {
     );
     timers.push(completeTimer);
 
-    return () => timers.forEach(clearTimeout);
+    return () => {
+      isMounted.current = false;
+      timers.forEach(clearTimeout);
+    };
   }, []);
 
   // 터미널 하단 고정 스크롤 (키보드 등장 대비)
@@ -162,8 +169,11 @@ export default function TerminalShell() {
   }, [history]);
 
   // 화면 클릭 시 입력창 포커스
-  const handleContainerClick = () => {
-    inputRef.current?.focus();
+  const handleContainerClick = (e: React.MouseEvent) => {
+    // 입력창 자체를 직접 터치한 경우에는 네이티브 동작에 맡김
+    if (e.target !== inputRef.current && !isBooting && !isProcessing) {
+      inputRef.current?.focus();
+    }
   };
 
   /**
@@ -181,6 +191,7 @@ export default function TerminalShell() {
       setHistoryIndex(-1);
       setInput("");
       setIsProcessing(true);
+      inputRef.current?.blur(); // iOS 타이핑 종료 직후 명시적으로 키보드 가리기
 
       const { lines, shouldClear } = processCommand(cmd);
 
@@ -203,12 +214,14 @@ export default function TerminalShell() {
         // 100ms ~ 300ms 사이의 랜덤 지연으로 기계적인 느낌 부여
         const delay = Math.floor(Math.random() * 200) + 100;
         await new Promise((resolve) => setTimeout(resolve, delay));
+        if (!isMounted.current) return;
         setHistory((prev) => [...prev, line]);
       }
 
+      if (!isMounted.current) return;
       setIsProcessing(false);
     },
-    [input, isBooting, isProcessing],
+    [input, isBooting, isProcessing, processCommand],
   );
 
   /**
@@ -305,6 +318,7 @@ export default function TerminalShell() {
                   autoFocus
                   autoComplete="off"
                   autoCorrect="off"
+                  autoCapitalize="none"
                   spellCheck={false}
                   placeholder="enter command..."
                   className="
