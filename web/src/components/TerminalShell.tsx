@@ -200,7 +200,7 @@ export default function TerminalShell() {
     >
       <div className="terminal-box">
         {/* 로고 */}
-        <div className="mb-6">
+        <div className="mb-6 shrink-0">
           <div className="glitch-container fade-in" data-text="">
             <Logo />
           </div>
@@ -209,8 +209,8 @@ export default function TerminalShell() {
           </p>
         </div>
 
-        {/* 출력 히스토리 */}
-        <div className="flex-1 overflow-y-auto space-y-1 pb-4 max-h-[60dvh]">
+        {/* 출력 히스토리 (터미널 내부에서만 스크롤) */}
+        <div className="flex-1 overflow-y-auto space-y-1 pb-4">
           {history.map((line) => {
             if (line.type === "link" && line.url) {
               return (
@@ -242,7 +242,7 @@ export default function TerminalShell() {
         </div>
 
         {/* 입력창 */}
-        <div className="mt-4">
+        <div className="mt-4 shrink-0 pb-2">
           <div className="border-t border-[#3a3a3a] pt-4">
             <form onSubmit={handleSubmit} className="flex items-center gap-2">
               <span className="text-[#ff4500] font-bold text-sm select-none">

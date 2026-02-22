@@ -32,8 +32,7 @@ body {
   font-family: var(--font-mono);
   font-size: 18px;
   line-height: 1.6;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: hidden; /* 브라우저 자체 스크롤 방지 */
   -webkit-overflow-scrolling: touch;
 }
 
@@ -223,15 +222,17 @@ body::after {
 .terminal-center {
   display: flex;
   flex-direction: column;
-  min-height: 100dvh;
+  height: 100dvh; /* 뷰포트에 꽉 차게 고정 */
   justify-content: center;
   align-items: center;
   padding: 2rem 1.5rem;
+  overflow: hidden;
 }
 
 .terminal-box {
   width: 100%;
   max-width: 640px;
+  height: 100%; /* 부모의 높이를 가득 채움 */
   display: flex;
   flex-direction: column;
 }
