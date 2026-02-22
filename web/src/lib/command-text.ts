@@ -19,6 +19,12 @@ export type ContentItem =
   | [string, LineType]
   | [string, "link", string];
 
+export interface BootLine {
+  text: string;
+  delay: number;
+  type: LineType;
+}
+
 export const COMMAND_TEXTS = {
   help: [
     ["┌──────────────────────────┐", "system"],
@@ -102,7 +108,7 @@ export const COMMAND_TEXTS = {
     ["└──────────────────────────┘", "system"],
     "  DATE  : 2026.03.07 (SAT)",
     "  VENUE : Club Faust, Seoul",
-    "  SECTOR: The Hidden Layer",
+    "  DESTINATION: The Hidden Layer",
     ["────────────────────────────", "system"],
     "  * Maiden Voyage to the Unknown Sector.",
     "",
@@ -201,4 +207,69 @@ export const COMMAND_TEXTS = {
       "error",
     ],
   ],
+
+  // ----------------------------------------------------------------------
+  // 초기 로딩 및 환영 메시지 (v0.33.0 이전)
+  // ----------------------------------------------------------------------
+
+  bootSequence: [
+    { text: "TERMINAL CORE — SYSTEM BOOT INITIATED", delay: 0, type: "system" },
+    { text: "...", delay: 150, type: "system" },
+    { text: "[ OK ] Loading kernel modules...", delay: 350, type: "output" },
+    { text: "[ OK ] Mounting hyperdrive array...", delay: 600, type: "output" },
+    {
+      text: "[ OK ] Initializing navigation matrix...",
+      delay: 900,
+      type: "output",
+    },
+    {
+      text: "[ OK ] Calibrating frequency bands...",
+      delay: 1200,
+      type: "output",
+    },
+    {
+      text: "[ -- ] Scanning for explorers manifest...",
+      delay: 1500,
+      type: "system",
+    },
+    {
+      text: "[ OK ] Explorers loaded: 3 personnel confirmed.",
+      delay: 1800,
+      type: "output",
+    },
+    {
+      text: "[ -- ] Verifying gate coordinates...",
+      delay: 2100,
+      type: "system",
+    },
+    {
+      text: "[ OK ] Gate: Club Faust, Seoul / 2026.03.07",
+      delay: 2450,
+      type: "output",
+    },
+    { text: "...", delay: 2800, type: "system" },
+    {
+      text: "─────────────────────────────────────────",
+      delay: 3000,
+      type: "system",
+    },
+    { text: "  STATUS: OPERATIONAL", delay: 3200, type: "success" },
+    {
+      text: "  Maiden Voyage to the Unknown Sector.",
+      delay: 3450,
+      type: "success",
+    },
+    {
+      text: "─────────────────────────────────────────",
+      delay: 3650,
+      type: "system",
+    },
+  ] as BootLine[],
+
+  welcomeMessage: [
+    ["─────────────────────────────────────────", "system"],
+    ["  TERMINAL CORE SYSTEM — ACCESS GRANTED", "success"],
+    ["  Type 'help' to view available commands.", "output"],
+    ["─────────────────────────────────────────", "system"],
+  ] as ContentItem[],
 };
