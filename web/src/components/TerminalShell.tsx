@@ -41,6 +41,46 @@ const WELCOME_LINES: TerminalLine[] = [
     text: "─────────────────────────────────────────",
     type: "system",
   },
+  {
+    id: "w-4",
+    text: "  TERMINAL [01] / COMMAND INDEX",
+    type: "system",
+  },
+  {
+    id: "w-5",
+    text: "─────────────────────────────────────────",
+    type: "system",
+  },
+  {
+    id: "w-6",
+    text: "  lineup   — 아티스트 라인업 조회",
+    type: "output",
+  },
+  {
+    id: "w-7",
+    text: "  gate     — 게이트(장소/일시) 정보",
+    type: "output",
+  },
+  {
+    id: "w-8",
+    text: "  status   — 시스템 가동 상태 확인",
+    type: "output",
+  },
+  {
+    id: "w-9",
+    text: "  link     — 외부 연결 링크 제공",
+    type: "output",
+  },
+  {
+    id: "w-10",
+    text: "  clear    — 터미널 출력 초기화",
+    type: "output",
+  },
+  {
+    id: "w-11",
+    text: "─────────────────────────────────────────",
+    type: "system",
+  },
 ];
 
 const LINE_COLOR: Record<TerminalLine["type"], string> = {
@@ -73,6 +113,31 @@ export default function TerminalShell() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [history]);
+
+  // iOS Safari 가상 키보드 높이 동적 대응 (100dvh 버그 방지)
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.visualViewport) {
+        // visualViewport 높이에 맞춰 body 높이를 강제 고정하여 키보드가 뷰포트를 가리는 것을 밀어냄
+        document.body.style.height = `${window.visualViewport.height}px`;
+        window.scrollTo(0, 0);
+      }
+    };
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", handleResize);
+      window.visualViewport.addEventListener("scroll", handleResize);
+      handleResize(); // 초기화
+    }
+
+    return () => {
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener("resize", handleResize);
+        window.visualViewport.removeEventListener("scroll", handleResize);
+      }
+      document.body.style.height = ""; // 클린업
+    };
+  }, []);
 
   // 화면 클릭 시 입력창 포커스
   const handleContainerClick = () => {
@@ -189,6 +254,13 @@ export default function TerminalShell() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
+                onBlur={() => {
+                  // 키보드가 닫혔을 때 빈 공간이 남는 iOS 버그 복구
+                  setTimeout(() => {
+                    window.scrollTo(0, 0);
+                    document.body.scrollTop = 0;
+                  }, 10);
+                }}
                 autoFocus
                 autoComplete="off"
                 autoCorrect="off"

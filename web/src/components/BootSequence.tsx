@@ -5,20 +5,20 @@ import { useEffect, useState } from "react";
 /** 부팅 시퀀스에서 순차 출력될 텍스트 라인 목록 */
 const BOOT_LINES = [
   { text: "TERMINAL [01] — SYSTEM BOOT INITIATED", delay: 0 },
-  { text: "...", delay: 300 },
-  { text: "[ OK ] Loading kernel modules...", delay: 700 },
-  { text: "[ OK ] Mounting hyperdrive array...", delay: 1200 },
-  { text: "[ OK ] Initializing navigation matrix...", delay: 1800 },
-  { text: "[ OK ] Calibrating frequency bands...", delay: 2400 },
-  { text: "[ -- ] Scanning for crew manifest...", delay: 3000 },
-  { text: "[ OK ] Crew loaded: 3 personnel confirmed.", delay: 3600 },
-  { text: "[ -- ] Verifying gate coordinates...", delay: 4200 },
-  { text: "[ OK ] Gate: Club Faust, Seoul / 2026.03.07", delay: 4900 },
-  { text: "...", delay: 5600 },
-  { text: "──────────────────────────────────────────", delay: 6000 },
-  { text: "  STATUS: OPERATIONAL", delay: 6400 },
-  { text: "  Maiden Voyage to the Unknown Sector.", delay: 6900 },
-  { text: "──────────────────────────────────────────", delay: 7300 },
+  { text: "...", delay: 150 },
+  { text: "[ OK ] Loading kernel modules...", delay: 350 },
+  { text: "[ OK ] Mounting hyperdrive array...", delay: 600 },
+  { text: "[ OK ] Initializing navigation matrix...", delay: 900 },
+  { text: "[ OK ] Calibrating frequency bands...", delay: 1200 },
+  { text: "[ -- ] Scanning for crew manifest...", delay: 1500 },
+  { text: "[ OK ] Crew loaded: 3 personnel confirmed.", delay: 1800 },
+  { text: "[ -- ] Verifying gate coordinates...", delay: 2100 },
+  { text: "[ OK ] Gate: Club Faust, Seoul / 2026.03.07", delay: 2450 },
+  { text: "...", delay: 2800 },
+  { text: "──────────────────────────────────────────", delay: 3000 },
+  { text: "  STATUS: OPERATIONAL", delay: 3200 },
+  { text: "  Maiden Voyage to the Unknown Sector.", delay: 3450 },
+  { text: "──────────────────────────────────────────", delay: 3650 },
 ];
 
 interface BootSequenceProps {
@@ -44,12 +44,12 @@ export default function BootSequence({ onComplete }: BootSequenceProps) {
       timers.push(t);
     });
 
-    // 부팅 완료 후 터미널 진입
+    // 부팅 완료 후 터미널 진입 (지연시간도 1500ms -> 800ms로 단축)
     const completeTimer = setTimeout(
       () => {
         onComplete();
       },
-      BOOT_LINES[BOOT_LINES.length - 1].delay + 1500,
+      BOOT_LINES[BOOT_LINES.length - 1].delay + 1000,
     );
     timers.push(completeTimer);
 
