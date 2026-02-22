@@ -1,4 +1,12 @@
+@import url("https://fonts.googleapis.com/css2?family=Orbit&display=swap");
 @import "tailwindcss";
+@font-face {
+  font-family: "Redline";
+  src: url("/fonts/redline.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}
 
 /* ─────────────────────────────────────────
    TERMINAL [01] — Global Design System
@@ -7,15 +15,17 @@
 ───────────────────────────────────────── */
 
 :root {
-  --orange: #ff4500;
-  --orange-dim: #cc3700;
-  --orange-glow: rgba(255, 69, 0, 0.25);
-  --grey-bg: #1c1c1c;
-  --grey-surface: #242424;
-  --grey-border: #3a3a3a;
-  --grey-text: #c8c8c8;
-  --grey-muted: #6a6a6a;
-  --font-mono: var(--font-mono), "JetBrains Mono", "Courier New", monospace;
+  --orange: #ff9b51;
+  --orange-dim: #cc7b41;
+  --orange-glow: rgba(255, 155, 81, 0.25);
+  --yellow: #ff9b51;
+  --grey-bg: #25343f;
+  --grey-surface: #2d3e4b;
+  --grey-border: #4a5a67;
+  --grey-text: #eaefef;
+  --grey-muted: #4a5a67;
+  --font-mono: "Redline", "Orbit", "JetBrains Mono", monospace;
+  --font-logo: "Redline", sans-serif;
 }
 
 * {
@@ -54,18 +64,6 @@ body::before {
     rgba(0, 0, 0, 0.07) 2px,
     rgba(0, 0, 0, 0.07) 4px
   );
-}
-
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 9998;
-  pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  background-size: 128px;
-  opacity: 0.5;
 }
 
 /* ── Scrollbar ── */
@@ -155,30 +153,9 @@ body::after {
     transform: translate(0);
   }
 }
-.glitch-container {
-  position: relative;
-}
-.glitch-container::before,
-.glitch-container::after {
-  content: attr(data-text);
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-}
-.glitch-container:hover::before {
-  opacity: 0.7;
-  color: var(--orange);
-  animation: glitch-clip1 0.3s steps(1) infinite;
-  left: 2px;
-}
-.glitch-container:hover::after {
-  opacity: 0.5;
-  color: #00ffff;
-  animation: glitch-clip1 0.35s steps(1) infinite reverse;
-  left: -2px;
-}
 .glitch-container:hover {
-  animation: glitch-skew 0.3s ease-in-out infinite;
+  opacity: 0.85;
+  transition: opacity 0.2s ease;
 }
 
 /* ── Screen Flicker ── */
@@ -249,7 +226,7 @@ body::after {
   }
 
   .terminal-center {
-    padding: 1.5rem 1rem;
+    padding: 1.5rem 0.5rem;
     justify-content: flex-start;
     padding-top: max(2.5rem, env(safe-area-inset-top));
     padding-bottom: max(2.5rem, env(safe-area-inset-bottom));
@@ -270,8 +247,17 @@ body::after {
 @media (max-width: 375px) {
   html,
   body {
-    font-size: 14px;
+    font-size: 13px;
   }
+}
+
+/* ── Hide Scrollbar 유틸리티 ── */
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
 }
 
 /* ── Safe area support (notch devices) ── */

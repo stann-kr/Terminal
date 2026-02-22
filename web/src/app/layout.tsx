@@ -9,10 +9,10 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TERMINAL [01]",
-  description: "THE UNIVERSAL JOURNEY OF STANN LUMO. 2026.03.07 / Faust, Seoul",
+  title: "TERMINAL",
+  description: "THE UNIVERSAL JOURNEY OF STANN LUMO.",
   openGraph: {
-    title: "TERMINAL [01]",
+    title: "TERMINAL",
     description: "THE UNIVERSAL JOURNEY OF STANN LUMO.",
     type: "website",
   },
@@ -24,7 +24,11 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   interactiveWidget: "resizes-content",
+  themeColor: "#25343f",
+  viewportFit: "cover",
 };
+
+import NoiseOverlay from "@/components/NoiseOverlay";
 
 export default function RootLayout({
   children,
@@ -33,10 +37,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko" className={jetbrainsMono.variable}>
-      <head>
-        <meta name="theme-color" content="#1a1a1a" />
-      </head>
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        <NoiseOverlay />
+        {children}
+      </body>
     </html>
   );
 }
