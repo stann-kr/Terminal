@@ -1,25 +1,20 @@
 # Dependency directories
-node_modules/
-
-# Next.js build output
+web/node_modules/
 .next/
-out/
+web/out/
 
 # Environment variables
-.env*.local
+web/.env*.local
 
 # Editor / System files
 .DS_Store
 .vscode/
 *.log
 
-# Ignore all dot folders (Hidden folders)
-.*/
-
-# Un-ignore specific hidden files/folders if needed
-!/.gitignore
-!/.dockerignore
-
-# Root level specific ignores
+# Project specific hidden folders
 .agents/
 .docs/
+.gemini/
+
+# DO NOT ignore src!
+# Clean up any generic dot-folder ignore rules
