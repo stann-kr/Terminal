@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { COLORS } from "@/lib/colors";
 import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -24,7 +25,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   interactiveWidget: "resizes-content",
-  themeColor: "#1c1c1c",
+  themeColor: COLORS.GREY_BG,
   viewportFit: "cover",
 };
 

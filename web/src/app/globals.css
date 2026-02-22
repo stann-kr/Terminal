@@ -11,6 +11,7 @@
 /* ─────────────────────────────────────────
    TERMINAL [01] — Global Design System
    Color: International Orange + Light Grey
+   Defined in: src/lib/colors.ts (Single Source of Truth)
    Font: JetBrains Mono (Monospace)
 ───────────────────────────────────────── */
 
@@ -50,6 +51,21 @@ body {
   overflow: hidden; /* 브라우저 개입 완벽 차단 */
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
+}
+
+/* ── Global CRT Scanlines ── */
+body::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998; /* NoiseOverlay 아래에 위치 */
+  background: linear-gradient(
+    to bottom,
+    transparent 50%,
+    rgba(0, 0, 0, 0.15) 50%
+  );
+  background-size: 100% 4px; /* 4px 간격의 가로선 */
 }
 
 /* ── CRT Scanline + Noise Overlay ── */
