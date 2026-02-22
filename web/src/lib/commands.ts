@@ -49,7 +49,7 @@ const COMMAND_MAP: Record<string, (args?: string[]) => TerminalLine[]> = {
     line("  link     — 외부 연결 링크 제공", "output"),
     line("  [ SYSTEM ]", "system"),
     line("  whoami   — 접속자 권한 확인", "output"),
-    line("  echo     — 텍스트 출력 (예: echo hello)", "output"),
+    line("  echo     — 텍스트 출력", "output"),
     line("  clear    — 터미널 화면 초기화", "output"),
     line(""),
   ],
@@ -170,7 +170,7 @@ const COMMAND_MAP: Record<string, (args?: string[]) => TerminalLine[]> = {
 
   echo: (args?: string[]) => {
     if (!args || args.length === 0) {
-      return [line("  usage: echo <text>", "error"), line("")];
+      return [line("  usage: echo <Hello, Passenger>", "error"), line("")];
     }
     return [line(`  ${args.join(" ")}`, "output"), line("")];
   },

@@ -28,79 +28,59 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/* ── Global Noise Grain (Background for System Areas) ── */
-/* 캔버스 노이즈가 닿지 않는 키보드 뒷영역/상태바 영역을 위한 애니메이션 노이즈 */
-@keyframes global-noise-anim {
+/* ── Global Texture Animation (Native Background) ── */
+/* 가상 요소 대신 html 배경의 위치를 직접 조절하여 시스템 영역까지 노이즈 투영 */
+@keyframes global-texture-anim {
   0% {
-    transform: translate(0, 0);
-  }
-  10% {
-    transform: translate(-1%, -1%);
+    background-position:
+      0 0,
+      0 0;
   }
   20% {
-    transform: translate(1%, 1%);
-  }
-  30% {
-    transform: translate(-2%, 1%);
+    background-position:
+      0 0,
+      15px 15px;
   }
   40% {
-    transform: translate(2%, -1%);
-  }
-  50% {
-    transform: translate(-1%, 2%);
+    background-position:
+      0 0,
+      -10px 5px;
   }
   60% {
-    transform: translate(1%, -2%);
-  }
-  70% {
-    transform: translate(2%, 1%);
+    background-position:
+      0 0,
+      5px -10px;
   }
   80% {
-    transform: translate(-2%, -1%);
-  }
-  90% {
-    transform: translate(1%, 2%);
+    background-position:
+      0 0,
+      -15px -15px;
   }
   100% {
-    transform: translate(0, 0);
+    background-position:
+      0 0,
+      0 0;
   }
-}
-
-html::before {
-  content: "";
-  position: fixed;
-  /* 시스템 영역(상태바 등) 밖까지 질감이 투영되도록 보수적인 범위 설정 */
-  inset: -10%;
-  width: 120%;
-  height: 120%;
-  pointer-events: none;
-  z-index: 1; /* html 배경색(0) 위, body(10) 아래 */
-  opacity: 0.06;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-  animation: global-noise-anim 0.2s steps(1) infinite;
 }
 
 html {
   background-color: var(--grey-bg);
-  min-height: 100%;
-  min-height: -webkit-fill-available; /* iOS Safari 특화 */
-  overscroll-behavior: none; /* 시스템 바운스 시 배경 깨짐 방지 */
-}
+  /* 다중 배경 레이어: 1. 가로선(상단) 2. 노이즈(중단) 3. 배경색(하단) */
+  background-image:
+    linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.12) 50%),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  background-size:
+    100% 4px,
+    200px 200px;
+  background-repeat: repeat, repeat;
+  background-attachment: fixed;
 
-/* ── Global CRT Scanlines ── */
-/* z-index를 조절하여 텍스트 뒤에 오되, 시스템 배경보다는 위에 위치 */
-html::after {
-  content: "";
-  position: fixed;
-  inset: -5% 0;
-  pointer-events: none;
-  z-index: 2; /* 노이즈(1) 보다 위, body(10) 보다 아래 */
-  background: linear-gradient(
-    to bottom,
-    transparent 50%,
-    rgba(0, 0, 0, 0.12) 50%
-  );
-  background-size: 100% 4px;
+  min-height: 100%;
+  min-height: -webkit-fill-available;
+  overscroll-behavior: none;
+
+  /* 노이즈 질감 애니메이션 실행 */
+  animation: global-texture-anim 0.2s steps(1) infinite;
 }
 
 body {
