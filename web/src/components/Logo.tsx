@@ -27,7 +27,7 @@ export default function Logo({ className = "" }: { className?: string }) {
           fontSize="38"
           letterSpacing="12"
           fill="#EAEFEF"
-          style={{ fontFamily: "'Redline', var(--font-logo), sans-serif" }}
+          style={{ fontFamily: "var(--font-logo)" }}
         >
           TERMINAL
         </text>

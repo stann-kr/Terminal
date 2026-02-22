@@ -24,6 +24,7 @@
   --grey-border: #4a5a67;
   --grey-text: #eaefef;
   --grey-muted: #4a5a67;
+  --error: #ff6b6b;
   --font-mono: "Redline", "Orbit", "JetBrains Mono", monospace;
   --font-logo: "Redline", sans-serif;
 }
@@ -32,6 +33,7 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 
 html,
