@@ -13,7 +13,8 @@ export type LineType =
   | "system"
   | "input"
   | "link"
-  | "header";
+  | "header"
+  | "divider";
 
 export type ContentItem =
   | string
@@ -97,7 +98,7 @@ export const COMMAND_TEXTS = {
     "  DATE  : 2026.03.07 (SAT)",
     "  VENUE : Club Faust, Seoul",
     "  DESTINATION: The Hidden Layer",
-    ["────────────────────", "system"],
+    ["", "divider"],
     "  * Maiden Voyage to the Unknown Sector.",
     "",
   ] as ContentItem[],
@@ -200,15 +201,15 @@ export const COMMAND_TEXTS = {
     { text: "[ -- ] Verifying gate coordinates...", type: "system" },
     { text: "[ OK ] Gate: Club Faust, Seoul / 2026.03.07", type: "output" },
     { text: "...", type: "system" },
-    { text: "────────────────────", type: "system" },
+    { text: "", type: "divider" },
     { text: "  STATUS: OPERATIONAL", type: "success" },
     { text: "  Maiden Voyage to the Unknown Sector.", type: "success" },
-    { text: "────────────────────", type: "system" },
+    { text: "", type: "divider" },
   ] as BootLine[],
 
   welcomeMessage: [
     ["  TERMINAL CORE SYSTEM — ACCESS GRANTED", "success"],
     ["  Type 'help' to view available commands.", "output"],
-    ["────────────────────", "system"],
+    ["", "divider"],
   ] as ContentItem[],
 };

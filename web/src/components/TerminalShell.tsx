@@ -17,6 +17,7 @@ const LINE_COLOR: Record<TerminalLine["type"], string> = {
   input: "text-[var(--orange)] font-bold",
   link: "text-[var(--grey-text)] hover:text-[var(--orange)] hover:underline cursor-pointer transition-colors",
   header: "", // Uses .terminal-header from globals.css directly
+  divider: "",
 };
 
 const QUICK_COMMANDS = ["about", "lineup", "gate", "link", "help"];
@@ -292,6 +293,15 @@ export default function TerminalShell() {
                 >
                   {line.text}
                 </div>
+              );
+            }
+
+            if (line.type === "divider") {
+              return (
+                <div
+                  key={line.id}
+                  className="border-t border-[var(--grey-border)] my-2 opacity-50 w-[95%]"
+                />
               );
             }
 
