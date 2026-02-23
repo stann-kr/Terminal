@@ -1,8 +1,7 @@
-@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&family=Orbit&display=swap");
 @import "tailwindcss";
 
 @theme {
-  --font-mono: "Orbitron", "Orbit", var(--font-jetbrains-mono), monospace;
+  --font-mono: var(--font-orbit), var(--font-jetbrains-mono), monospace;
   --font-logo: "Procrastinating Pixie", sans-serif;
 
   --color-orange: var(--orange);
@@ -27,7 +26,7 @@
 
 :root {
   /* COLORS are now injected via layout.tsx from src/lib/colors.ts */
-  --font-mono: "Orbitron", "Orbit", var(--font-jetbrains-mono), monospace;
+  --font-mono: var(--font-orbit), var(--font-jetbrains-mono), monospace;
   --font-logo: "Procrastinating Pixie", sans-serif;
 }
 
