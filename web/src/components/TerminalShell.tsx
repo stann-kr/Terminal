@@ -270,7 +270,7 @@ export default function TerminalShell() {
               return (
                 <p
                   key={line.id}
-                  className="font-mono text-sm leading-relaxed break-all"
+                  className="font-mono text-sm leading-relaxed break-all pl-4"
                 >
                   <a
                     href={line.url}
@@ -311,7 +311,7 @@ export default function TerminalShell() {
               <div
                 key={line.id}
                 data-line-type={line.type}
-                className={`text-sm leading-relaxed whitespace-pre-wrap break-words ${LINE_COLOR[line.type as keyof typeof LINE_COLOR]} ${isInput ? "mt-6 mb-1" : ""}`}
+                className={`text-sm leading-relaxed whitespace-pre-wrap break-words ${LINE_COLOR[line.type as keyof typeof LINE_COLOR]} ${isInput ? "mt-6 mb-1" : "pl-4"}`}
               >
                 {line.text}
               </div>
@@ -398,7 +398,7 @@ export default function TerminalShell() {
           </div>
         </div>
 
-        <div className="mt-3 flex flex-wrap gap-3 px-1">
+        <div className="mt-3 flex flex-wrap gap-3 px-4">
           {QUICK_COMMANDS.map((cmd) => (
             <button
               key={cmd}

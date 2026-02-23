@@ -1,9 +1,17 @@
-@import url("https://fonts.googleapis.com/css2?family=Orbit&display=swap");
 @import "tailwindcss";
 
+@theme {
+  --font-mono: var(--font-orbit), var(--font-jetbrains-mono), monospace;
+  --font-logo: "Procrastinating Pixie", sans-serif;
+
+  --color-orange: var(--orange);
+  --color-orange-dim: var(--orange-dim);
+  --color-orange-glow: var(--orange-glow);
+}
+
 @font-face {
-  font-family: "Redline";
-  src: url("/fonts/redline.ttf") format("truetype");
+  font-family: "Procrastinating Pixie";
+  src: url("/fonts/ProcrastinatingPixie-WyVOO.ttf") format("truetype");
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -14,12 +22,12 @@
    Color: International Orange + Light Grey
    Defined in: src/lib/colors.ts (Single Source of Truth)
    Font: JetBrains Mono (Monospace)
-───────────────────────────────────────── */
+   ───────────────────────────────────────── */
 
 :root {
   /* COLORS are now injected via layout.tsx from src/lib/colors.ts */
-  --font-mono: "Redline", "Orbit", var(--font-jetbrains-mono), monospace;
-  --font-logo: "Redline", sans-serif;
+  --font-mono: var(--font-orbit), var(--font-jetbrains-mono), monospace;
+  --font-logo: "Procrastinating Pixie", sans-serif;
 }
 
 @layer base {
@@ -76,6 +84,7 @@
     color: var(--grey-muted);
     margin-bottom: 0.5rem !important; /* mb-6 */
     margin-top: 1rem !important;
+    margin-left: 1rem; /* 부모 pl-4 제거됨에 따라 margin 추가 */
     letter-spacing: 0.1em; /* tracking-widest */
     text-transform: uppercase;
     font-size: 0.875rem; /* text-sm */

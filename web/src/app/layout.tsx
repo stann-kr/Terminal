@@ -1,12 +1,18 @@
 import type { Metadata, Viewport } from "next";
 import { COLORS } from "@/lib/colors";
-import { JetBrains_Mono } from "next/font/google";
+import { JetBrains_Mono, Orbit } from "next/font/google";
 import "./globals.css";
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-jetbrains-mono",
   weight: ["300", "400", "500", "700"],
+});
+
+const orbit = Orbit({
+  subsets: ["latin"],
+  variable: "--font-orbit",
+  weight: ["400"],
 });
 
 export const metadata: Metadata = {
@@ -41,7 +47,7 @@ export default function RootLayout({
   return (
     <html
       lang="ko"
-      className={jetbrainsMono.variable}
+      className={`${jetbrainsMono.variable} ${orbit.variable}`}
       style={
         {
           "--orange": COLORS.ORANGE,
