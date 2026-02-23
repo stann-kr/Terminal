@@ -1,11 +1,6 @@
 "use client";
 
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-} from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   processCommand,
   uid,
@@ -27,21 +22,47 @@ const LINE_COLOR: Record<TerminalLine["type"], string> = {
   progress: "text-[var(--grey-muted)] font-mono",
 };
 
-type QuickCommand = { label: string; cmd: string; stageOnly?: boolean; back?: boolean };
+type QuickCommand = {
+  label: string;
+  cmd: string;
+  stageOnly?: boolean;
+  back?: boolean;
+};
 
 const DEFAULT_QUICK_COMMANDS: QuickCommand[] = [
   { label: "about", cmd: "about" },
   { label: "lineup", cmd: "lineup" },
   { label: "gate", cmd: "gate" },
+  { label: "whois", cmd: "whois" },
   { label: "link", cmd: "link" },
+  { label: "status", cmd: "status" },
   { label: "settings", cmd: "settings" },
   { label: "help", cmd: "help" },
 ];
 
 const AVAILABLE_COMMANDS = [
-  "about", "clear", "echo", "gate", "help", "lineup",
-  "link", "settings", "status", "sudo", "systems",
-  "voyage", "whois", "whoami",
+  "about",
+  "clear",
+  "commands",
+  "echo",
+  "gate",
+  "help",
+  "lineup",
+  "link",
+  "settings",
+  "status",
+  "sudo",
+  "systems",
+  "voyage",
+  "whois",
+  "whoami",
+  "date",
+  "time",
+  "ping",
+  "weather",
+  "scan",
+  "matrix",
+  "history",
 ];
 
 const EASTER_EGG_TEXT = `
@@ -78,13 +99,20 @@ export default function TerminalShell() {
   const inputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   // boot 시퀀스에서 typeOutLines를 안전하게 호출하기 위한 ref
-  const typeOutLinesRef = useRef<((lines: TerminalLine[]) => Promise<void>) | null>(null);
+  const typeOutLinesRef = useRef<
+    ((lines: TerminalLine[]) => Promise<void>) | null
+  >(null);
 
   /** 초기화: localStorage 즉시 읽기 → 테마 적용 → 스캔 애니메이션 → 부팅 또는 언어 선택 */
   useEffect(() => {
     // 1. localStorage를 동기적으로 즉시 읽어 테마/언어 적용 (블로킹 스크립트와 이중 보호)
-    const savedLang = localStorage.getItem("terminal_lang") as LanguageType | null;
-    const savedTheme = localStorage.getItem("terminal_theme") as "dark" | "light" | null;
+    const savedLang = localStorage.getItem(
+      "terminal_lang",
+    ) as LanguageType | null;
+    const savedTheme = localStorage.getItem("terminal_theme") as
+      | "dark"
+      | "light"
+      | null;
     document.documentElement.setAttribute("data-theme", savedTheme ?? "dark");
     if (savedLang) document.documentElement.lang = savedLang;
 
@@ -104,7 +132,11 @@ export default function TerminalShell() {
             text: `> LANG: ${savedLang.toUpperCase()}  /  THEME: ${(savedTheme ?? "DARK").toUpperCase()}`,
             type: "success",
           },
-          { id: `pre-${uid()}`, text: "READY. INITIALIZING...", type: "system" },
+          {
+            id: `pre-${uid()}`,
+            text: "READY. INITIALIZING...",
+            type: "system",
+          },
           { id: `pre-${uid()}`, text: "", type: "divider" },
         ]);
         bootTimer = setTimeout(() => {
@@ -115,11 +147,23 @@ export default function TerminalShell() {
         // 저장된 설정 없음 — 스캔 결과 + 언어 선택을 한 번에 추가 (별도 useEffect 없이)
         setHistory((prev) => [
           ...prev,
-          { id: `pre-${uid()}`, text: "NO SAVED CONFIGURATION.", type: "system" },
-          { id: `lang-${uid()}`, text: "SELECT SYSTEM LANGUAGE", type: "header" },
+          {
+            id: `pre-${uid()}`,
+            text: "NO SAVED CONFIGURATION.",
+            type: "system",
+          },
+          {
+            id: `lang-${uid()}`,
+            text: "SELECT SYSTEM LANGUAGE",
+            type: "header",
+          },
           { id: `lang-${uid()}`, text: "  [1] English", type: "output" },
           { id: `lang-${uid()}`, text: "  [2] 한국어", type: "output" },
-          { id: `lang-${uid()}`, text: "  Type 1 or 2 and press Enter.", type: "system" },
+          {
+            id: `lang-${uid()}`,
+            text: "  Type 1 or 2 and press Enter.",
+            type: "system",
+          },
           { id: `lang-${uid()}`, text: "", type: "divider" },
         ]);
         setIsInitialized(true);
@@ -182,7 +226,7 @@ export default function TerminalShell() {
       clearInterval(interval);
       if (timeoutId) clearTimeout(timeoutId);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [language]); // theme은 boot 시작 시 1회만 캡처되므로 의존성에서 제외
 
   // 터미널 하단 고정 스크롤 (모바일 간헐적 중단 버그 수정 v0.32.1)
@@ -228,7 +272,10 @@ export default function TerminalShell() {
             setHistory((prev) =>
               prev.map((h) =>
                 h.id === newLineId
-                  ? { ...h, text: `${line.text} [${full.repeat(i)}${empty.repeat(barLen - i)}]` }
+                  ? {
+                      ...h,
+                      text: `${line.text} [${full.repeat(i)}${empty.repeat(barLen - i)}]`,
+                    }
                   : h,
               ),
             );
@@ -240,7 +287,11 @@ export default function TerminalShell() {
         // output 외의 라인은 짧은 스태거 딜레이 후 출력
         if (line.type !== "output") {
           const stagger =
-            line.type === "divider" || line.type === "input" ? 0 : fastMode ? 20 : 65;
+            line.type === "divider" || line.type === "input"
+              ? 0
+              : fastMode
+                ? 20
+                : 65;
           if (stagger) await new Promise((r) => setTimeout(r, stagger));
           setHistory((prev) => [...prev, line]);
           scrollToBottom();
@@ -261,7 +312,7 @@ export default function TerminalShell() {
 
           const typingSpeed = fastMode
             ? Math.floor(Math.random() * 5) + 2
-            : Math.floor(Math.random() * 20) + 10;
+            : Math.floor(Math.random() * 14) + 6; // 6ms~20ms (avg 13ms) - approx 30% faster than original (10ms~30ms, avg 20ms)
           await new Promise((r) => setTimeout(r, typingSpeed));
         }
         scrollToBottom();
@@ -276,7 +327,8 @@ export default function TerminalShell() {
     typeOutLinesRef.current = typeOutLines;
   }, [typeOutLines]);
 
-  const isInputActive = isInitialized && (language === null || (!isBooting && !isTyping));
+  const isInputActive =
+    isInitialized && (language === null || (!isBooting && !isTyping));
   // 버튼은 입력 애니메이션 중에도 비활성화
   const isButtonsActive = isInputActive && !isAnimatingInput;
 
@@ -314,7 +366,7 @@ export default function TerminalShell() {
   }, []);
 
   const handleCommand = useCallback(
-    (cmd: string) => {
+    async (cmd: string) => {
       const trimmedCmd = cmd.trim();
       if (!trimmedCmd) return;
 
@@ -334,6 +386,24 @@ export default function TerminalShell() {
       setHistoryIndex(-1);
 
       const result = processCommand(trimmedCmd, language);
+
+      // Settings 반영 전 피드백 (Language, Theme, Reset)
+      if (
+        result.action &&
+        (result.action.type === "CHANGE_LANG" ||
+          result.action.type === "CHANGE_THEME" ||
+          result.action.type === "RESET")
+      ) {
+        const applyMsg = COMMAND_TEXTS.settingsApply[language][0];
+        const applyLine: TerminalLine = {
+          id: `apply-${uid()}`,
+          text: Array.isArray(applyMsg) ? applyMsg[0] : applyMsg,
+          type: "progress",
+        };
+        setHistory((prev) => [...prev, applyLine]);
+        await new Promise((r) => setTimeout(r, 1000));
+        // 피드백 완료 후 해당 라인 제거 (선택적) 또는 그대로 두고 진행
+      }
 
       if (result.shouldClear) {
         setTimeout(() => setHistory([]), 50);
@@ -361,11 +431,23 @@ export default function TerminalShell() {
           document.documentElement.setAttribute("data-theme", "dark");
           setIsBooting(true);
           setHistory([
-            { id: `reset-${uid()}`, text: "SYSTEM RESET COMPLETE.", type: "system" },
-            { id: `lang-${uid()}`, text: "SELECT SYSTEM LANGUAGE", type: "header" },
+            {
+              id: `reset-${uid()}`,
+              text: "SYSTEM RESET COMPLETE.",
+              type: "system",
+            },
+            {
+              id: `lang-${uid()}`,
+              text: "SELECT SYSTEM LANGUAGE",
+              type: "header",
+            },
             { id: `lang-${uid()}`, text: "  [1] English", type: "output" },
             { id: `lang-${uid()}`, text: "  [2] 한국어", type: "output" },
-            { id: `lang-${uid()}`, text: "  Type 1 or 2 and press Enter.", type: "system" },
+            {
+              id: `lang-${uid()}`,
+              text: "  Type 1 or 2 and press Enter.",
+              type: "system",
+            },
             { id: `lang-${uid()}`, text: "", type: "divider" },
           ]);
         }
@@ -383,7 +465,13 @@ export default function TerminalShell() {
       isAnimatingRef.current = true;
       setIsAnimatingInput(true);
 
-      inputRef.current?.focus();
+      // 모바일 등 터치 환경에서는 강제 포커스를 하여 키보드가 올라오는 것을 방지
+      if (
+        typeof window !== "undefined" &&
+        window.matchMedia("(hover: hover) and (pointer: fine)").matches
+      ) {
+        inputRef.current?.focus();
+      }
       setInput("");
       setCursorPosition(0);
       await new Promise((r) => setTimeout(r, 60));
@@ -425,9 +513,7 @@ export default function TerminalShell() {
         e.preventDefault();
         const nextIndex = Math.min(historyIndex + 1, commandHistory.length - 1);
         setHistoryIndex(nextIndex);
-        setInput(
-          commandHistory[commandHistory.length - 1 - nextIndex] ?? "",
-        );
+        setInput(commandHistory[commandHistory.length - 1 - nextIndex] ?? "");
       } else if (e.key === "ArrowDown") {
         e.preventDefault();
         const nextIndex = Math.max(historyIndex - 1, -1);
@@ -462,7 +548,11 @@ export default function TerminalShell() {
     }
   }, [input, cursorPosition]);
 
-  const BACK_BTN: QuickCommand = { label: "← back", cmd: "__back__", back: true };
+  const BACK_BTN: QuickCommand = {
+    label: "← back",
+    cmd: "__back__",
+    back: true,
+  };
 
   let currentQuickCommands: QuickCommand[] = DEFAULT_QUICK_COMMANDS;
   if (language === null) {
@@ -505,10 +595,7 @@ export default function TerminalShell() {
         ];
       }
     } else if (activeCtx === "whois") {
-      currentQuickCommands = [
-        BACK_BTN,
-        { label: "stann", cmd: "whois stann" },
-      ];
+      currentQuickCommands = [BACK_BTN, { label: "stann", cmd: "whois stann" }];
     } else if (activeCtx === "sudo") {
       currentQuickCommands = [
         BACK_BTN,
@@ -582,7 +669,11 @@ export default function TerminalShell() {
               <div
                 key={line.id}
                 data-line-type={line.type}
-                style={hasAnim ? { animation: "fadeIn 0.4s ease forwards" } : undefined}
+                style={
+                  hasAnim
+                    ? { animation: "fadeIn 0.4s ease forwards" }
+                    : undefined
+                }
                 className={`text-sm leading-relaxed whitespace-pre-wrap break-words ${LINE_COLOR[line.type as keyof typeof LINE_COLOR]} ${isInput ? "mt-6 mb-1" : "pl-4"}`}
               >
                 {line.text}
@@ -687,12 +778,27 @@ export default function TerminalShell() {
                 if (qcmd.back) {
                   setQuickCmdContext(null);
                   setInput("");
-                  inputRef.current?.focus();
+                  if (
+                    typeof window !== "undefined" &&
+                    window.matchMedia("(hover: hover) and (pointer: fine)")
+                      .matches
+                  ) {
+                    inputRef.current?.focus();
+                  }
                 } else if (qcmd.cmd === "settings") {
                   typeAndExecute(qcmd.cmd).then(() =>
                     setQuickCmdContext("settings"),
                   );
-                } else if (quickCmdContext === "settings" || qcmd.cmd.startsWith("settings ")) {
+                } else if (qcmd.cmd === "whois") {
+                  typeAndExecute(qcmd.cmd).then(() =>
+                    setQuickCmdContext("whois"),
+                  );
+                } else if (
+                  quickCmdContext === "settings" ||
+                  qcmd.cmd.startsWith("settings ") ||
+                  quickCmdContext === "whois" ||
+                  qcmd.cmd.startsWith("whois ")
+                ) {
                   typeAndExecute(qcmd.cmd).then(() => setQuickCmdContext(null));
                 } else {
                   typeAndExecute(qcmd.cmd, { stageOnly: qcmd.stageOnly });
@@ -704,13 +810,14 @@ export default function TerminalShell() {
                 transition-all duration-300 ease-in-out
                 focus:outline-none
                 disabled:opacity-30 disabled:cursor-not-allowed
-                ${qcmd.back
-                  ? "border-[var(--grey-border)] text-[var(--grey-muted)] hover:border-[var(--grey-text)] hover:text-[var(--grey-text)]"
-                  : "border-[var(--grey-border)] text-[var(--grey-text)] hover:border-[var(--orange)] hover:text-[var(--orange)] hover:bg-[rgba(255,155,81,0.05)] active:bg-[rgba(255,155,81,0.15)] focus:border-[var(--orange)] focus:text-[var(--orange)]"
+                ${
+                  qcmd.back
+                    ? "border-[var(--grey-border)] text-[var(--grey-muted)] hover:border-[var(--grey-text)] hover:text-[var(--grey-text)]"
+                    : "border-[var(--grey-border)] text-[var(--grey-text)] hover:border-[var(--orange)] hover:text-[var(--orange)] hover:bg-[rgba(255,155,81,0.05)] active:bg-[rgba(255,155,81,0.15)] focus:border-[var(--orange)] focus:text-[var(--orange)]"
                 }
               `}
             >
-              [ &nbsp;{qcmd.label}&nbsp; ]
+              [{qcmd.label}]
             </button>
           ))}
         </div>

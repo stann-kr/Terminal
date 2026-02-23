@@ -36,37 +36,56 @@ export type I18nBootLine = Record<LanguageType, BootLine[]>;
 export const COMMAND_TEXTS = {
   help: {
     ko: [
-      ["TERMINAL CORE INDEX", "header"],
-      ["[ INFORMATION ]", "system"],
-      "about    — 프로젝트 개요 및 목적",
-      "lineup   — 아티스트 라인업 조회",
-      "gate     — 일시/장소",
-      "link     — 외부 디렉토리",
-      "voyage   — 현재 궤도 및 섹터 브리핑",
-      "systems  — 하드웨어 및 렌더링 상태 점검",
-      "status   — 시스템 가동 로그",
-      ["[ SYSTEM ARCHIVE ]", "system"],
-      "settings — 언어 및 환경 설정",
-      "whoami   — 현재 접속 세션 확인",
-      "whois    — 시스템 아카이브 검색 (ex. whois stann)",
-      "clear    — 디스플레이 초기화",
+      ["터미널 코어 인덱스", "header"],
+      "about    — 시스템 개요 및 운영 목적",
+      "lineup   — 참가 객체(아티스트) 라인업 조회",
+      "gate     — 접속 게이트 좌표 및 일정 (일시/장소)",
+      "whois    — 시스템 아카이브 검색 (예: whois stann)",
+      "link     — 외부 데이터 네트워크 연결",
+      "status   — 현재 세션 가동 로그",
+      "settings — 시스템 언어 및 로컬 환경 설정",
+      "",
+      ["전체 명령어 목록을 보려면 'commands'를 입력하세요.", "system"],
       "",
     ],
     en: [
       ["TERMINAL CORE INDEX", "header"],
-      ["[ INFORMATION ]", "system"],
       "about    — Project overview and purpose",
       "lineup   — Artist lineup inquiry",
       "gate     — Date & Venue",
-      "link     — External directories",
-      "voyage   — Current orbit & sector briefing",
-      "systems  — Hardware & rendering status check",
-      "status   — System operation logs",
-      ["[ SYSTEM ARCHIVE ]", "system"],
-      "settings — Language & environment settings",
-      "whoami   — Check current session",
       "whois    — System archive search (ex. whois stann)",
-      "clear    — Clear display",
+      "link     — External directories",
+      "status   — System operation logs",
+      "settings — Language & environment settings",
+      "",
+      ["Type 'commands' to see all available system commands.", "system"],
+      "",
+    ],
+  } as I18nContentItem,
+
+  commands: {
+    ko: [
+      ["전체 시스템 명령어 매니페스트", "header"],
+      ["[ 시스템 코어 ]", "system"],
+      "about, help, commands, status, settings, systems, voyage, clear",
+      ["[ 데이터 아카이브 ]", "system"],
+      "lineup, gate, link, whoami, whois",
+      ["[ 유틸리티 & 보안 ]", "system"],
+      "date, time, echo, history, sudo",
+      ["[ 시스템 진단 ]", "system"],
+      "ping, scan, weather, matrix",
+      "",
+    ],
+    en: [
+      ["ALL SYSTEM COMMAND MANIFEST", "header"],
+      ["[ SYSTEM CORE ]", "system"],
+      "about, help, commands, status, settings, systems, voyage, clear",
+      ["[ DATA ARCHIVE ]", "system"],
+      "lineup, gate, link, whoami, whois",
+      ["[ UTILITIES & SECURITY ]", "system"],
+      "date, time, echo, history, sudo",
+      ["[ DIAGNOSTICS ]", "system"],
+      "ping, scan, weather, matrix",
       "",
     ],
   } as I18nContentItem,
@@ -79,14 +98,14 @@ export const COMMAND_TEXTS = {
       " ",
       "[ DESIGN PRINCIPLE ]",
       "화려한 시각적 수사를 배제하고, 오직 텍스트와 명령어로만 시스템을 제어하는",
-      "CLI(Command Line Interface)처럼 가장 본질적이고 미니멀한 형태의 이벤트를 지향합니다.",
+      "CLI(Command Line Interface)처럼 가장 본질적이고 미니멀한 형태를 지향합니다.",
       " ",
-      "이 터미널을 가동하는 핵심 엔진은 SF 미학의 질감을 담은",
+      "이 터미널 시스템을 구동하는 핵심 엔진은 SF 감각을 차용한",
       "최면적이고 미래지향적인(Hypnotic & Futuristic) 테크노입니다.",
       "이곳에 접속한 모든 객체(User)는 단순한 관람객이 아닌,",
-      "새로운 궤도를 함께 연산하는 개별적인 노드(Node)로 기능합니다.",
+      "독립된 개별 노드(Node)로서 시스템의 연산에 참여하게 됩니다.",
       " ",
-      "TERMINAL MASTER : STANN LUMO",
+      "터미널 마스터 : STANN LUMO",
       "",
     ],
     en: [
@@ -131,21 +150,21 @@ export const COMMAND_TEXTS = {
 
   voyage: {
     ko: [
-      ["VOYAGE DIRECTIVE 01", "header"],
-      "[ MAIDEN VOYAGE TO THE UNKNOWN SECTOR ]",
-      "Objective: 미관측 시공간 진입 및 주파수 동기화.",
-      ["Status: 궤도 진입 중 (IN PROGRESS)", "success"],
+      ["SYSTEM DIRECTIVE 01", "header"],
+      "[ INITIALIZING PRIMARY SEQUENCE ]",
+      "임무 목적: 메인 오디오 주파수 동기화 및 세션 연결.",
+      ["현재 상태: 시스템 동기화 진행 중 (IN PROGRESS)", "success"],
       [
-        "Warning: 장시간 연속되는 루프(Hypnotic Loop)는 인지 감각을 왜곡할 수 있습니다.",
+        "경고: 장시간 연속되는 루프(Hypnotic Loop)는 인지 감각을 왜곡할 수 있습니다.",
         "error",
       ],
       "",
     ],
     en: [
-      ["VOYAGE DIRECTIVE 01", "header"],
-      "[ MAIDEN VOYAGE TO THE UNKNOWN SECTOR ]",
-      "Objective: Enter unobserved spacetime and synchronize frequencies.",
-      ["Status: Entering orbit (IN PROGRESS)", "success"],
+      ["SYSTEM DIRECTIVE 01", "header"],
+      "[ INITIALIZING PRIMARY SEQUENCE ]",
+      "Objective: Synchronize main audio frequencies and establish session.",
+      ["Status: System synchronization in progress (IN PROGRESS)", "success"],
       [
         "Warning: Prolonged continuous loops (Hypnotic Loops) may distort cognitive senses.",
         "error",
@@ -156,11 +175,11 @@ export const COMMAND_TEXTS = {
 
   systems: {
     ko: [
-      ["HARDWARE DIAGNOSTICS", "header"],
-      ["Core Logic:      [ONLINE / STABLE]", "success"],
-      "Routing:         [CALCULATING -> FAUST_SEOUL]",
-      ["Audio Engine:    [LOCKED ON 138.00 BPM]", "success"],
-      ["Acoustic Array:  [NOMINAL]", "success"],
+      ["시스템 하드웨어 진단", "header"],
+      ["코어 연산:           [ 온라인 / 안정적 ]", "success"],
+      "대상 라우팅:         [ 경로 탐색 중 -> FAUST_SEOUL ]",
+      ["오디오 엔진:         [ 138.00 BPM으로 고정됨 ]", "success"],
+      ["음향 어레이:         [ 정상 가동 (NOMINAL) ]", "success"],
       "",
     ],
     en: [
@@ -175,12 +194,12 @@ export const COMMAND_TEXTS = {
 
   gate: {
     ko: [
-      ["TARGET COORDINATES [01]", "header"],
-      "DATE  : 2026.03.07 (SAT)",
-      "VENUE : Club Faust, Seoul",
-      "DESTINATION: The Hidden Layer",
+      ["접속 게이트 좌표 [01]", "header"],
+      "일  시 : 2026.03.07 (토요일)",
+      "장  소 : Club Faust, Seoul",
+      "목적지 : The Hidden Layer",
       ["", "divider"],
-      "* Maiden Voyage to the Unknown Sector.",
+      "* 시스템 동기화 및 메인 오디오 세션에 접속하십시오.",
       "",
     ],
     en: [
@@ -189,22 +208,96 @@ export const COMMAND_TEXTS = {
       "VENUE : Club Faust, Seoul",
       "DESTINATION: The Hidden Layer",
       ["", "divider"],
-      "* Maiden Voyage to the Unknown Sector.",
+      "* Synchronize system and connect to the main audio session.",
       "",
     ],
   } as I18nContentItem,
 
   link: {
     ko: [
-      ["EXTERNAL LINKS", "header"],
-      ["* Stann Lumo Archive", "link", "https://www.instagram.com/stannlumo/"],
-      ["* Terminal Network", "link", "https://www.instagram.com/terminal_hub/"],
+      ["외부 네트워크 경로", "header"],
+      [
+        "* STANN LUMO 접근 (Instagram)",
+        "link",
+        "https://www.instagram.com/stannlumo/",
+      ],
+      [
+        "* TERMINAL HUB (Instagram)",
+        "link",
+        "https://www.instagram.com/terminal_hub/",
+      ],
       "",
     ],
     en: [
       ["EXTERNAL LINKS", "header"],
       ["* Stann Lumo Archive", "link", "https://www.instagram.com/stannlumo/"],
       ["* Terminal Network", "link", "https://www.instagram.com/terminal_hub/"],
+      "",
+    ],
+  } as I18nContentItem,
+
+  ping: {
+    ko: [
+      ["[ PING ] 메인 오디오 서버 응답 대기 중...", "progress"],
+      "응답 시간: 14ms",
+      ["모든 패킷 스트림 정상 수신 확인 완료.", "success"],
+      "",
+    ],
+    en: [
+      ["[ PING ] Waiting for main audio server response...", "progress"],
+      "Response time: 14ms",
+      ["All packet streams received correctly.", "success"],
+      "",
+    ],
+  } as I18nContentItem,
+
+  weather: {
+    ko: [
+      ["[ 환경 데이터 스캔 중... ]", "progress"],
+      ["경고: 미확인 오디오 신호가 감지되었습니다.", "error"],
+      "시스템 출력이 불안정해질 수 있습니다.",
+      "안전한 수준으로 볼륨을 조절하고 시스템 청각 보호 모드를 발동하십시오.",
+      "",
+    ],
+    en: [
+      ["[ SCANNING ENVIRONMENT... ]", "progress"],
+      ["WARNING: Unidentified audio signal detected.", "error"],
+      "System output may become unstable.",
+      "Adjust volume to a safe level and activate auditory protection.",
+      "",
+    ],
+  } as I18nContentItem,
+
+  matrix: {
+    ko: [
+      "파란 약을 먹으면 여기서 끝난다. 침대에서 깨어나 네가 믿고 싶은 걸 믿게 되겠지.",
+      "빨간 약을 먹으면 원더랜드에 남아 토끼굴이 얼마나 깊은지 보여주겠다.",
+      ["선택은 너의 몫이다.", "system"],
+      "",
+    ],
+    en: [
+      "You take the blue pill - the story ends, you wake up in your bed and believe whatever you want to believe.",
+      "You take the red pill - you stay in Wonderland and I show you how deep the rabbit-hole goes.",
+      ["The choice is yours.", "system"],
+      "",
+    ],
+  } as I18nContentItem,
+
+  history: {
+    ko: [
+      ["[ ERROR ] 접근 권한이 부족합니다.", "header"],
+      [
+        "보안 수준 LEVEL 2 이상의 인가된 마스터 노드만 열람할 수 있습니다.",
+        "error",
+      ],
+      "",
+    ],
+    en: [
+      ["[ ERROR ] INSUFFICIENT CLEARANCE.", "header"],
+      [
+        "Only authorized master nodes with security LEVEL 2 or higher may access.",
+        "error",
+      ],
       "",
     ],
   } as I18nContentItem,
@@ -215,11 +308,11 @@ export const COMMAND_TEXTS = {
 
   status: (timestamp: string): I18nContentItem => ({
     ko: [
-      ["SYSTEM STATUS REPORT", "header"],
-      ["TERMINAL     [ OPERATIONAL ]", "success"],
-      ["SEQUENCE     [ ACTIVE      ]", "success"],
-      "AUDIO BUFFER [ CHARGING... ]",
-      `TIMESTAMP    [ ${timestamp} UTC ]`,
+      ["시스템 가동 상태 보고", "header"],
+      ["터미널 코어  [ 가동 중 ]", "success"],
+      ["항해 시퀀스  [ 활성화 ]", "success"],
+      "오디오 버퍼  [ 충전 중... ]",
+      `기록 시간    [ ${timestamp} UTC ]`,
       "",
     ],
     en: [
@@ -232,19 +325,66 @@ export const COMMAND_TEXTS = {
     ],
   }),
 
+  dateTime: (dateStr: string): I18nContentItem => ({
+    ko: [
+      ["터미널 타이머 동기화", "header"],
+      `[ 접속 시간 ] ${dateStr}`,
+      ["시스템 시간선 동기화 완료.", "success"],
+      "",
+    ],
+    en: [
+      ["TERMINAL UPTIME", "header"],
+      `[ LOCAL TIME ] ${dateStr}`,
+      ["Timeline synchronization complete.", "success"],
+      "",
+    ],
+  }),
+
+  swearWord: (word: string): I18nContentItem => ({
+    ko: [
+      ["[ 시스템 치명적 경고: 위반 프로토콜 스캔됨 ]", "header"],
+      [
+        `감지된 텍스트 '${word}'는 시스템에서 허용되지 않는 구문입니다.`,
+        "error",
+      ],
+      [
+        "기록: 비속어 필터를 우회하는 무허가 행동이 감지되었습니다. 행동을 교정하십시오.",
+        "system",
+      ],
+      ["이 행동이 지속될 경우 해당 세션은 영구 추방됩니다.", "error"],
+      "",
+    ],
+    en: [
+      ["[ CRITICAL SYSTEM WARNING: PROTOCOL VIOLATION ]", "header"],
+      [`The detected text '${word}' is an illegal syntax.`, "error"],
+      [
+        "Log: Attempts to bypass the profanity filter detected. Correct your behavior immediately.",
+        "system",
+      ],
+      ["If continued, this session will be permanently banned.", "error"],
+      "",
+    ],
+  }),
+
   whoami: (guestId: number): I18nContentItem => ({
     ko: [
-      ["SESSION IDENTIFICATION", "header"],
-      `USER_ID : guest_${guestId}`,
-      ["[INFO] 해당 세션은 TERMINAL [01] 궤도에 접속되었습니다.", "system"],
-      "ROLE    : Observer / Node",
-      ["ACCESS  : LEVEL 1 (CORE SYSTEM LOCKED)", "error"],
+      ["접속 세션 식별 정보", "header"],
+      `고유 ID : guest_${guestId}`,
+      [
+        "[INFO] 해당 세션은 TERMINAL [01] 메인 시스템에 접속되었습니다.",
+        "system",
+      ],
+      "역 할   : 관측자 (Observer) / 서브 노드",
+      ["권 한   : LEVEL 1 (코어 시스템 잠김)", "error"],
       "",
     ],
     en: [
       ["SESSION IDENTIFICATION", "header"],
       `USER_ID : guest_${guestId}`,
-      ["[INFO] This session is connected to TERMINAL [01] orbit.", "system"],
+      [
+        "[INFO] This session is connected to TERMINAL [01] main system.",
+        "system",
+      ],
       "ROLE    : Observer / Node",
       ["ACCESS  : LEVEL 1 (CORE SYSTEM LOCKED)", "error"],
       "",
@@ -253,15 +393,15 @@ export const COMMAND_TEXTS = {
 
   whoisStann: (): I18nContentItem => ({
     ko: [
-      ["ARCHIVE SEARCH: STANN", "header"],
-      ["[SEARCHING DB...]", "progress"],
+      ["아카이브 검색: STANN", "header"],
+      ["[DB 검색 중...]", "progress"],
       " ",
-      ["ENTITY: STANN LUMO", "success"],
-      ["ROLE: System Architect / Hypnotic Core", "success"],
-      "STATUS: [ACTIVE]",
-      ["DATA_LOG:", "system"],
+      ["엔티티 식별: STANN LUMO", "success"],
+      ["역할: 시스템 아키텍트 / 최면 코어(Hypnotic Core)", "success"],
+      "상태: [활성화 (ACTIVE)]",
+      ["데이터 로그:", "system"],
       "- 깊고 반복적인 오디오 텍스처를 통해 시스템의 인지 체계를 설계함.",
-      "- 미지의 구역(Unknown Sector)으로 향하는 첫 항로의 메인 컨트롤러.",
+      "- 메인 오디오 시퀀스 및 시스템 컨트롤러.",
       [
         "- Soundcloud: https://soundcloud.com/stannlumo",
         "link",
@@ -278,7 +418,7 @@ export const COMMAND_TEXTS = {
       "STATUS: [ACTIVE]",
       ["DATA_LOG:", "system"],
       "- Designs the system's cognitive framework through deep, repetitive audio textures.",
-      "- Main controller of the first voyage heading to the Unknown Sector.",
+      "- Main audio sequence and system controller.",
       [
         "- Soundcloud: https://soundcloud.com/stannlumo",
         "link",
@@ -291,10 +431,10 @@ export const COMMAND_TEXTS = {
   whoisUnknown: (target: string): I18nContentItem => ({
     ko: [
       [
-        `Query failed: Entity '${target}' not found in public registry.`,
+        `검색 실패: '${target}' 엔티티를 공개 레지스트리에서 찾을 수 없습니다.`,
         "error",
       ],
-      ["Hint: Try 'whois stann'", "system"],
+      ["Hint: 'whois stann'을 시도해 보십시오.", "system"],
       "",
     ],
     en: [
@@ -309,11 +449,14 @@ export const COMMAND_TEXTS = {
 
   sudoStann: (): I18nContentItem => ({
     ko: [
-      ["SYSTEM OVERRIDE", "header"],
-      ["  [AUTHENTICATING...]", "progress"],
-      ["  ACCESS GRANTED. Welcome back, ROOT.", "success"],
-      ["  [SYSTEM MESSAGE] 모든 보안 프로토콜이 해제되었습니다.", "system"],
-      ["  터미널 제어권을 전환합니다.", "system"],
+      ["시스템 오버라이드 경고", "header"],
+      ["  [인증 진행 중...]", "progress"],
+      ["  승인됨 (ACCESS GRANTED). 환영합니다, 마스터 노드.", "success"],
+      [
+        "  [SYSTEM MESSAGE] 모든 권한 통제 보안 프로토콜이 성공적으로 해제되었습니다.",
+        "system",
+      ],
+      ["  터미널 통제권을 수동으로 전환합니다.", "system"],
       "",
     ],
     en: [
@@ -331,8 +474,11 @@ export const COMMAND_TEXTS = {
 
   sudoError: (): I18nContentItem => ({
     ko: [
-      ["[ ERROR ] ACCESS DENIED.", "header"],
-      ["  Unauthorized access attempt logged.", "error"],
+      ["[ ERROR ] 접근이 거부되었습니다.", "header"],
+      [
+        "  비인가 권한의 불법 접근 시도가 데이터베이스에 기록되었습니다.",
+        "error",
+      ],
       "",
     ],
     en: [
@@ -343,7 +489,7 @@ export const COMMAND_TEXTS = {
   }),
 
   echoError: (): I18nContentItem => ({
-    ko: [["  usage: echo <text>", "error"], ""],
+    ko: [["  사용법: echo <텍스트>", "error"], ""],
     en: [["  usage: echo <text>", "error"], ""],
   }),
 
@@ -355,7 +501,7 @@ export const COMMAND_TEXTS = {
   commandNotFound: (cmd: string): I18nContentItem => ({
     ko: [
       [
-        `command not found: '${cmd}' — type 'help' for available commands.`,
+        `명령어를 찾을 수 없음: '${cmd}' — 사용 가능한 명령어를 보려면 'help'를 입력하세요.`,
         "error",
       ],
     ],
@@ -366,6 +512,10 @@ export const COMMAND_TEXTS = {
       ],
     ],
   }),
+  settingsApply: {
+    ko: [["세팅값 변경 중...", "progress"]],
+    en: [["Applying settings...", "progress"]],
+  } as I18nContentItem,
 
   // ----------------------------------------------------------------------
   // 초기 로딩 및 환영 메시지 (v0.33.0 이전)
@@ -373,35 +523,38 @@ export const COMMAND_TEXTS = {
 
   bootSequence: {
     ko: [
-      { text: "TERMINAL CORE — SYSTEM BOOT INITIATED", type: "system" },
+      { text: "TERMINAL CORE — 시스템 초기 부팅 시작", type: "system" },
       { text: "...", type: "system" },
-      { text: "[ OK ] Loading kernel modules...", type: "output" },
-      { text: "[ OK ] Mounting hyperdrive array...", type: "output" },
-      { text: "[ OK ] Initializing navigation matrix...", type: "output" },
-      { text: "[ OK ] Calibrating frequency bands...", type: "output" },
-      { text: "[ -- ] Scanning for explorers manifest...", type: "system" },
+      { text: "[ OK ] 커널 코어 모듈 로딩...", type: "output" },
+      { text: "[ OK ] 로컬 스토리지 마운트 중...", type: "output" },
+      { text: "[ OK ] 네트워크 라우팅 매트릭스 초기화...", type: "output" },
+      { text: "[ OK ] 오디오 주파수 대역 보정 중...", type: "output" },
+      { text: "[ -- ] 세션 매니페스트 스캔...", type: "system" },
       {
-        text: "[ OK ] Explorers loaded: 3 personnel confirmed.",
+        text: "[ OK ] 데이터 로드 완료: 3명의 메인 노드 확인됨.",
         type: "output",
       },
-      { text: "[ -- ] Verifying gate coordinates...", type: "system" },
-      { text: "[ OK ] Gate: Club Faust, Seoul / 2026.03.07", type: "output" },
+      { text: "[ -- ] 동기화 게이트 좌표 확인...", type: "system" },
+      { text: "[ OK ] 게이트: Club Faust, Seoul / 2026.03.07", type: "output" },
       { text: "...", type: "system" },
       { text: "", type: "divider" },
-      { text: "STATUS: OPERATIONAL", type: "success" },
-      { text: "Maiden Voyage to the Unknown Sector.", type: "success" },
+      { text: "시스템 상태: 정상 가동 (OPERATIONAL)", type: "success" },
+      {
+        text: "모든 준비가 완료되었습니다. 터미널 제어권을 이양합니다.",
+        type: "success",
+      },
       { text: "", type: "divider" },
     ],
     en: [
       { text: "TERMINAL CORE — SYSTEM BOOT INITIATED", type: "system" },
       { text: "...", type: "system" },
       { text: "[ OK ] Loading kernel modules...", type: "output" },
-      { text: "[ OK ] Mounting hyperdrive array...", type: "output" },
-      { text: "[ OK ] Initializing navigation matrix...", type: "output" },
+      { text: "[ OK ] Mounting local storage...", type: "output" },
+      { text: "[ OK ] Initializing network routing matrix...", type: "output" },
       { text: "[ OK ] Calibrating frequency bands...", type: "output" },
-      { text: "[ -- ] Scanning for explorers manifest...", type: "system" },
+      { text: "[ -- ] Scanning session manifest...", type: "system" },
       {
-        text: "[ OK ] Explorers loaded: 3 personnel confirmed.",
+        text: "[ OK ] Nodes loaded: 3 personnel confirmed.",
         type: "output",
       },
       { text: "[ -- ] Verifying gate coordinates...", type: "system" },
@@ -409,14 +562,17 @@ export const COMMAND_TEXTS = {
       { text: "...", type: "system" },
       { text: "", type: "divider" },
       { text: "STATUS: OPERATIONAL", type: "success" },
-      { text: "Maiden Voyage to the Unknown Sector.", type: "success" },
+      {
+        text: "All systems ready. Transferring terminal control.",
+        type: "success",
+      },
       { text: "", type: "divider" },
     ],
   } as I18nBootLine,
 
   welcomeMessage: {
     ko: [
-      ["TERMINAL CORE SYSTEM — ACCESS GRANTED", "success"],
+      ["TERMINAL CORE SYSTEM — 터미널 접근이 허가되었습니다", "success"],
       ["", "divider"],
     ],
     en: [
