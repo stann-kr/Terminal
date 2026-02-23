@@ -338,11 +338,12 @@ export default function TerminalShell() {
     typeOutLinesRef.current = typeOutLines;
   }, [typeOutLines]);
 
-  const isInputActive =
-    isInitialized &&
-    (language === null || (!isBooting && !isTyping && !isAnimatingInput));
+  const isInputVisible =
+    isInitialized && (language === null || (!isBooting && !isTyping));
 
-  // 버튼 활성화 상태 (isInputActive와 동일하지만 명시적 분리 유지 가능)
+  const isInputActive = isInputVisible && !isAnimatingInput;
+
+  // 버튼 활성화 상태
   const isButtonsActive = isInputActive;
 
   // [Refinement] 퀵 커맨드 영역의 높이가 변할 때(활성/비활성 또는 컨텍스트 전환) 스크롤 유지
@@ -361,7 +362,7 @@ export default function TerminalShell() {
 
     animationFrameId = requestAnimationFrame(syncScroll);
     return () => cancelAnimationFrame(animationFrameId);
-  }, [isInputActive, quickCmdContext, scrollToBottom]);
+  }, [isInputVisible, quickCmdContext, scrollToBottom]);
 
   const handleContainerClick = useCallback(
     (e: React.MouseEvent) => {
@@ -650,7 +651,8 @@ export default function TerminalShell() {
       ];
     } else if (activeCtx === "transmit") {
       // [Refinement] 현재 입력값이 transmit으로 시작하는 경우 동적 버튼 노출
-      if (input.trimStart().startsWith("transmit ")) {
+      // 타이핑 애니메이션 중에는 버튼 목록을 고정하여 버벅임 방지
+      if (input.trimStart().startsWith("transmit ") && !isAnimatingInput) {
         currentQuickCommands = [
           BACK_BTN,
           {
@@ -661,10 +663,6 @@ export default function TerminalShell() {
       } else {
         currentQuickCommands = [
           BACK_BTN,
-          {
-            label: language === "ko" ? "최신 목록 조회" : "latest logs",
-            cmd: "transmit",
-          },
           {
             label: language === "ko" ? "메시지 전송" : "send message",
             cmd: `transmit ${nodeId} `,
@@ -763,8 +761,8 @@ export default function TerminalShell() {
             <form
               onSubmit={handleSubmit}
               className={`flex-1 flex items-center relative transition-opacity duration-200 ${
-                !isInputActive ? "opacity-0 pointer-events-none" : "opacity-100"
-              }`}
+                !isInputVisible ? "opacity-0 invisible" : "opacity-100 visible"
+              } ${!isInputActive ? "pointer-events-none" : ""}`}
             >
               {/* [Refinement] 정밀 커서 추적 및 스크롤 동기화 레이어 (Text Mirroring) */}
               <div
@@ -877,7 +875,7 @@ export default function TerminalShell() {
                       }
                       setIsAnimatingInput(false);
                       isAnimatingRef.current = false;
-                    }, 120);
+                    }, 80);
                     return;
                   } else if (qcmd.cmd === "settings") {
                     typeAndExecute(qcmd.cmd, { nextContext: "settings" });
