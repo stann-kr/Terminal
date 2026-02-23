@@ -13,10 +13,10 @@ export default function Logo({ className = "" }: { className?: string }) {
         aria-label="TERMINAL"
       >
         {/* 사각형 프레임 (T의 상단 바 + L의 하단 바) */}
-        <rect x="0" y="0" width="640" height="8" fill="#FF9B51" />
-        <rect x="0" y="72" width="640" height="8" fill="#FF9B51" />
-        <rect x="0" y="0" width="8" height="80" fill="#FF9B51" />
-        <rect x="632" y="0" width="8" height="80" fill="#FF9B51" />
+        <rect x="0" y="0" width="640" height="8" fill="var(--orange)" />
+        <rect x="0" y="72" width="640" height="8" fill="var(--orange)" />
+        <rect x="0" y="0" width="8" height="80" fill="var(--orange)" />
+        <rect x="632" y="0" width="8" height="80" fill="var(--orange)" />
 
         {/* TERMINAL 텍스트 */}
         <text
@@ -26,7 +26,7 @@ export default function Logo({ className = "" }: { className?: string }) {
           fontWeight="700"
           fontSize="38"
           letterSpacing="12"
-          fill="#EAEFEF"
+          fill="var(--grey-text)"
           style={{ fontFamily: "var(--font-logo)" }}
         >
           TERMINAL

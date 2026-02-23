@@ -5,9 +5,15 @@
  * 명령어 출력 텍스트의 실제 데이터는 './command-text' 파일에서 관리됩니다.
  */
 
-import { COMMAND_TEXTS, ContentItem, LineType } from "./command-text";
+import { COMMAND_TEXTS } from "./command-text";
+import type {
+  ContentItem,
+  LineType,
+  LanguageType,
+  I18nContentItem,
+} from "./command-text";
 
-export { type LineType } from "./command-text";
+export type { LineType, LanguageType } from "./command-text";
 
 export interface TerminalLine {
   id: string;
@@ -16,8 +22,19 @@ export interface TerminalLine {
   url?: string;
 }
 
+export type CommandAction =
+  | { type: "CHANGE_LANG"; payload: "en" | "ko" }
+  | { type: "CHANGE_THEME"; payload: "dark" | "light" }
+  | { type: "RESET" };
+
+export interface CommandResult {
+  lines: TerminalLine[];
+  shouldClear?: boolean;
+  action?: CommandAction;
+}
+
 /** 고유 ID 생성 유틸리티 */
-const uid = () => `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+export const uid = () => `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
 /** 단일 라인 생성 헬퍼 */
 const line = (
@@ -34,8 +51,11 @@ const line = (
 /**
  * 선언적 콘텐츠(ContentItem) 배열을 TerminalLine 객체 배열로 변환하는 유틸리티
  */
-const parseContent = (items: ContentItem[]): TerminalLine[] => {
-  return items.map((item) => {
+const parseContent = (
+  items: I18nContentItem,
+  lang: LanguageType,
+): TerminalLine[] => {
+  return items[lang].map((item) => {
     // 문자열인 경우 기본 output 타입
     if (typeof item === "string") return line(item, "output");
     // 배열인 경우 [text, type, url?] 매핑
@@ -44,51 +64,126 @@ const parseContent = (items: ContentItem[]): TerminalLine[] => {
 };
 
 /** 명령어 → 응답 라인 매핑 (비즈니스 로직 및 텍스트 데이터 파싱) */
-const COMMAND_MAP: Record<string, (args?: string[]) => TerminalLine[]> = {
+const COMMAND_MAP: Record<
+  string,
+  (args: string[], lang: LanguageType) => TerminalLine[] | CommandResult
+> = {
   // 정적 콘텐츠 매핑
-  help: () => parseContent(COMMAND_TEXTS.help),
-  about: () => parseContent(COMMAND_TEXTS.about),
-  lineup: () => parseContent(COMMAND_TEXTS.lineup),
-  link: () => parseContent(COMMAND_TEXTS.link),
-  voyage: () => parseContent(COMMAND_TEXTS.voyage),
-  systems: () => parseContent(COMMAND_TEXTS.systems),
-  gate: () => parseContent(COMMAND_TEXTS.gate),
+  help: (_, lang) => parseContent(COMMAND_TEXTS.help, lang),
+  about: (_, lang) => parseContent(COMMAND_TEXTS.about, lang),
+  lineup: (_, lang) => parseContent(COMMAND_TEXTS.lineup, lang),
+  link: (_, lang) => parseContent(COMMAND_TEXTS.link, lang),
+  voyage: (_, lang) => parseContent(COMMAND_TEXTS.voyage, lang),
+  systems: (_, lang) => parseContent(COMMAND_TEXTS.systems, lang),
+  gate: (_, lang) => parseContent(COMMAND_TEXTS.gate, lang),
+
+  settings: (args, lang) => {
+    if (!args || args.length === 0) {
+      if (lang === "ko") {
+        return [
+          line("TERMINAL SETTINGS", "header"),
+          line("사용법:", "system"),
+          line("  settings lang [ko|en]      - 언어 변경", "output"),
+          line("  settings theme [dark|light] - 테마 변경", "output"),
+          line("  settings reset              - 모든 설정 초기화", "output"),
+          line("", "divider"),
+        ];
+      }
+      return [
+        line("TERMINAL SETTINGS", "header"),
+        line("Usage:", "system"),
+        line("  settings lang [ko|en]      - Change language", "output"),
+        line("  settings theme [dark|light] - Change theme", "output"),
+        line("  settings reset              - Reset all settings", "output"),
+        line("", "divider"),
+      ];
+    }
+
+    const subCmd = args[0]?.toLowerCase();
+    const val = args[1]?.toLowerCase();
+
+    if (subCmd === "lang") {
+      if (val === "ko" || val === "en") {
+        return {
+          lines: [
+            line(`Language set to: ${val.toUpperCase()}`, "success"),
+            line("", "divider"),
+          ],
+          action: { type: "CHANGE_LANG", payload: val as "ko" | "en" },
+        };
+      }
+      return [line(`Invalid language: ${val}. Use 'ko' or 'en'.`, "error")];
+    }
+
+    if (subCmd === "theme") {
+      if (val === "dark" || val === "light") {
+        return {
+          lines: [
+            line(`Theme set to: ${val.toUpperCase()}`, "success"),
+            line("", "divider"),
+          ],
+          action: { type: "CHANGE_THEME", payload: val as "dark" | "light" },
+        };
+      }
+      return [line(`Invalid theme: ${val}. Use 'dark' or 'light'.`, "error")];
+    }
+
+    if (subCmd === "reset") {
+      return {
+        lines: [
+          line(
+            lang === "ko"
+              ? "모든 설정을 초기화하고 리로드합니다..."
+              : "Resetting all settings and reloading...",
+            "system",
+          ),
+        ],
+        action: { type: "RESET" },
+        shouldClear: true,
+      };
+    }
+
+    return [line(`Unknown settings option: ${subCmd}`, "error")];
+  },
 
   // 동적 콘텐츠 매핑
-  status: () => {
+  status: (_, lang) => {
     const timestamp = new Date().toISOString().replace("T", " ").slice(0, 19);
-    return parseContent(COMMAND_TEXTS.status(timestamp));
+    return parseContent(COMMAND_TEXTS.status(timestamp), lang);
   },
 
-  whois: (args?: string[]) => {
+  whois: (args, lang) => {
     const target = args?.[0]?.toLowerCase() || "";
-    if (target === "stann" || target === "stannlumo") {
-      return parseContent(COMMAND_TEXTS.whoisStann());
+    if (!target) {
+      return [line(lang === "ko" ? "usage: whois <name>" : "usage: whois <name>", "error")];
     }
-    return parseContent(COMMAND_TEXTS.whoisUnknown(target));
+    if (target === "stann" || target === "stannlumo") {
+      return parseContent(COMMAND_TEXTS.whoisStann(), lang);
+    }
+    return parseContent(COMMAND_TEXTS.whoisUnknown(target), lang);
   },
 
-  whoami: () => {
+  whoami: (_, lang) => {
     const guestId = Math.floor(Math.random() * 9000 + 1000);
-    return parseContent(COMMAND_TEXTS.whoami(guestId));
+    return parseContent(COMMAND_TEXTS.whoami(guestId), lang);
   },
 
-  sudo: (args?: string[]) => {
+  sudo: (args, lang) => {
     if (
       args &&
       args[0]?.toLowerCase() === "login" &&
       args[1]?.toLowerCase() === "stann"
     ) {
-      return parseContent(COMMAND_TEXTS.sudoStann());
+      return parseContent(COMMAND_TEXTS.sudoStann(), lang);
     }
-    return parseContent(COMMAND_TEXTS.sudoError());
+    return parseContent(COMMAND_TEXTS.sudoError(), lang);
   },
 
-  echo: (args?: string[]) => {
+  echo: (args, lang) => {
     if (!args || args.length === 0) {
-      return parseContent(COMMAND_TEXTS.echoError());
+      return parseContent(COMMAND_TEXTS.echoError(), lang);
     }
-    return parseContent(COMMAND_TEXTS.echoOutput(args.join(" ")));
+    return parseContent(COMMAND_TEXTS.echoOutput(args.join(" ")), lang);
   },
 };
 
@@ -97,10 +192,10 @@ const COMMAND_MAP: Record<string, (args?: string[]) => TerminalLine[]> = {
  * @param raw - 사용자가 입력한 원시 문자열
  * @returns TerminalLine 배열
  */
-export function processCommand(raw: string): {
-  lines: TerminalLine[];
-  shouldClear: boolean;
-} {
+export function processCommand(
+  raw: string,
+  currentLang: LanguageType = "en",
+): CommandResult {
   const trimmed = raw.trim();
 
   if (!trimmed) return { lines: [], shouldClear: false };
@@ -117,11 +212,15 @@ export function processCommand(raw: string): {
   const handler = COMMAND_MAP[handlerKey as keyof typeof COMMAND_MAP];
 
   if (handler) {
-    return { lines: handler(args), shouldClear: false };
+    const result = handler(args, currentLang);
+    if (Array.isArray(result)) {
+      return { lines: result, shouldClear: false };
+    }
+    return { ...result, shouldClear: result.shouldClear || false };
   }
 
   return {
-    lines: parseContent(COMMAND_TEXTS.commandNotFound(cmd)),
+    lines: parseContent(COMMAND_TEXTS.commandNotFound(cmd), currentLang),
     shouldClear: false,
   };
 }

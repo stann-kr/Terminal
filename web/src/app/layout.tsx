@@ -36,7 +36,7 @@ export const viewport: Viewport = {
   userScalable: false,
   interactiveWidget: "resizes-content",
   viewportFit: "cover",
-  themeColor: COLORS.GREY_BG,
+  themeColor: COLORS.DARK_BG,
 };
 
 export default function RootLayout({
@@ -45,24 +45,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html
-      lang="ko"
-      className={`${jetbrainsMono.variable} ${orbit.variable}`}
-      style={
-        {
-          "--orange": COLORS.ORANGE,
-          "--orange-dim": COLORS.ORANGE_DIM,
-          "--orange-glow": COLORS.ORANGE_GLOW,
-          "--grey-bg": COLORS.GREY_BG,
-          "--grey-surface": COLORS.GREY_SURFACE,
-          "--grey-border": COLORS.GREY_BORDER,
-          "--grey-text": COLORS.GREY_TEXT,
-          "--grey-muted": COLORS.GREY_MUTED,
-          "--error": COLORS.ERROR,
-        } as React.CSSProperties
-      }
-    >
-      <body className="antialiased" suppressHydrationWarning>
+    <html lang="en" className={`${jetbrainsMono.variable} ${orbit.variable}`} suppressHydrationWarning>
+      <body className="antialiased overflow-hidden" suppressHydrationWarning>
+        {/* React hydration 전에 localStorage에서 테마/언어를 즉시 적용하여 FOUC 방지 */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('terminal_theme');if(t)document.documentElement.setAttribute('data-theme',t);var l=localStorage.getItem('terminal_lang');if(l)document.documentElement.lang=l;}catch(e){}})();`,
+          }}
+        />
         {children}
       </body>
     </html>
