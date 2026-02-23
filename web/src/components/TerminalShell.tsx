@@ -34,6 +34,7 @@ const DEFAULT_QUICK_COMMANDS: QuickCommand[] = [
   { label: "lineup", cmd: "lineup" },
   { label: "gate", cmd: "gate" },
   { label: "whois", cmd: "whois" },
+  { label: "transmit", cmd: "transmit" },
   { label: "link", cmd: "link" },
   { label: "status", cmd: "status" },
   { label: "settings", cmd: "settings" },
@@ -56,6 +57,7 @@ const AVAILABLE_COMMANDS = [
   "voyage",
   "whois",
   "whoami",
+  "transmit",
   "date",
   "time",
   "ping",
@@ -90,6 +92,7 @@ export default function TerminalShell() {
   const [isBooting, setIsBooting] = useState(true);
   const [isAnimatingInput, setIsAnimatingInput] = useState(false);
   const [quickCmdContext, setQuickCmdContext] = useState<string | null>(null);
+  const [nodeId, setNodeId] = useState<string>("");
   // localStorage 로드 완료 전 첫 렌더에서 UI가 깜빡이는 것 방지
   const [isInitialized, setIsInitialized] = useState(false);
   const hasBootedRef = useRef(false);
@@ -115,6 +118,14 @@ export default function TerminalShell() {
       | null;
     document.documentElement.setAttribute("data-theme", savedTheme ?? "dark");
     if (savedLang) document.documentElement.lang = savedLang;
+
+    // 사용자 식별자 (Method B) 초기화
+    let storedNodeId = localStorage.getItem("terminal_node_id");
+    if (!storedNodeId) {
+      storedNodeId = `NODE-${Math.floor(10000 + Math.random() * 90000)}`;
+      localStorage.setItem("terminal_node_id", storedNodeId);
+    }
+    setNodeId(storedNodeId);
 
     // 2. 스캔 애니메이션 (순수 시각 효과 — 데이터는 이미 읽음)
     setHistory([
@@ -200,7 +211,7 @@ export default function TerminalShell() {
         currentIndex++;
       } else {
         clearInterval(interval);
-        timeoutId = setTimeout(() => {
+        timeoutId = setTimeout(async () => {
           if (language === null) return;
           setHistory((prev) => [
             ...prev,
@@ -216,7 +227,7 @@ export default function TerminalShell() {
           ]);
           setIsBooting(false);
           // 부팅 완료 후 help 자동 출력 (setIsBooting(false)와 배치 → isTyping=true로 이어짐)
-          const helpResult = processCommand("help", language);
+          const helpResult = await processCommand("help", language);
           typeOutLinesRef.current?.(helpResult.lines);
         }, 500);
       }
@@ -327,10 +338,31 @@ export default function TerminalShell() {
     typeOutLinesRef.current = typeOutLines;
   }, [typeOutLines]);
 
-  const isInputActive =
+  const isInputVisible =
     isInitialized && (language === null || (!isBooting && !isTyping));
-  // 버튼은 입력 애니메이션 중에도 비활성화
-  const isButtonsActive = isInputActive && !isAnimatingInput;
+
+  const isInputActive = isInputVisible && !isAnimatingInput;
+
+  // 버튼 활성화 상태
+  const isButtonsActive = isInputActive;
+
+  // [Refinement] 퀵 커맨드 영역의 높이가 변할 때(활성/비활성 또는 컨텍스트 전환) 스크롤 유지
+  useEffect(() => {
+    let animationFrameId: number;
+    const startTime = Date.now();
+    const duration = 350; // CSS 트랜지션(0.3s)보다 약간 길게
+
+    const syncScroll = () => {
+      scrollToBottom();
+      const elapsed = Date.now() - startTime;
+      if (elapsed < duration) {
+        animationFrameId = requestAnimationFrame(syncScroll);
+      }
+    };
+
+    animationFrameId = requestAnimationFrame(syncScroll);
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [isInputVisible, quickCmdContext, scrollToBottom]);
 
   const handleContainerClick = useCallback(
     (e: React.MouseEvent) => {
@@ -385,7 +417,7 @@ export default function TerminalShell() {
       setCommandHistory((prev) => [...prev, trimmedCmd]);
       setHistoryIndex(-1);
 
-      const result = processCommand(trimmedCmd, language);
+      const result = await processCommand(trimmedCmd, language);
 
       // Settings 반영 전 피드백 (Language, Theme, Reset)
       if (
@@ -460,10 +492,16 @@ export default function TerminalShell() {
 
   /** 퀵 커맨드 클릭 시 입력창에 글자를 한 자씩 타이핑한 뒤 실행 */
   const typeAndExecute = useCallback(
-    async (cmd: string, opts?: { stageOnly?: boolean }) => {
+    async (
+      cmd: string,
+      opts?: { stageOnly?: boolean; nextContext?: string | null },
+    ) => {
       if (isAnimatingRef.current) return;
       isAnimatingRef.current = true;
       setIsAnimatingInput(true);
+
+      // [Refinement] 80ms 페이드아웃이 시작될 시간을 충분히 줌 (깜빡임 방지)
+      await new Promise((r) => setTimeout(r, 80));
 
       // 모바일 등 터치 환경에서는 강제 포커스를 하여 키보드가 올라오는 것을 방지
       if (
@@ -485,10 +523,15 @@ export default function TerminalShell() {
 
       if (!opts?.stageOnly) {
         await new Promise((r) => setTimeout(r, 90));
-        // handleCommand가 setIsTyping(true)를 동기적으로 호출하므로
-        // 같은 React 배치 안에서 isAnimatingInput=false + isTyping=true가 동시에 처리됨
-        // → 버튼이 순간적으로 활성화되는 타이밍 버그 방지
-        handleCommand(cmd);
+        await handleCommand(cmd);
+
+        // [Refinement] 명령 실행 완료 후, 영역이 닫힌 상태를 충분히 유지한 뒤 컨텍스트 변경
+        // 80ms 페이드아웃 시간보다 넉넉하게 대기하여 깜빡임 방지
+        if (opts?.nextContext !== undefined) {
+          await new Promise((r) => setTimeout(r, 80));
+          setQuickCmdContext(opts.nextContext);
+        }
+
         setIsAnimatingInput(false);
         isAnimatingRef.current = false;
       } else {
@@ -538,15 +581,15 @@ export default function TerminalShell() {
     [historyIndex, commandHistory, language],
   );
 
-  const [inputTextWidth, setInputTextWidth] = useState(0);
   const [cursorPosition, setCursorPosition] = useState(0);
-  const mirrorRef = useRef<HTMLSpanElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (mirrorRef.current) {
-      setInputTextWidth(mirrorRef.current.offsetWidth);
+  // [Refinement] 인풋의 수평 스크롤 위치를 오버레이와 동기화
+  const syncScroll = () => {
+    if (inputRef.current && overlayRef.current) {
+      overlayRef.current.scrollLeft = inputRef.current.scrollLeft;
     }
-  }, [input, cursorPosition]);
+  };
 
   const BACK_BTN: QuickCommand = {
     label: "← back",
@@ -595,12 +638,38 @@ export default function TerminalShell() {
         ];
       }
     } else if (activeCtx === "whois") {
-      currentQuickCommands = [BACK_BTN, { label: "stann", cmd: "whois stann" }];
+      currentQuickCommands = [
+        BACK_BTN,
+        { label: "stann", cmd: "whois stann" },
+        { label: "marcus", cmd: "whois marcus" },
+        { label: "nusnoom", cmd: "whois nusnoom" },
+      ];
     } else if (activeCtx === "sudo") {
       currentQuickCommands = [
         BACK_BTN,
         { label: "login stann", cmd: "sudo login stann" },
       ];
+    } else if (activeCtx === "transmit") {
+      // [Refinement] 현재 입력값이 transmit으로 시작하는 경우 동적 버튼 노출
+      // 타이핑 애니메이션 중에는 버튼 목록을 고정하여 버벅임 방지
+      if (input.trimStart().startsWith("transmit ") && !isAnimatingInput) {
+        currentQuickCommands = [
+          BACK_BTN,
+          {
+            label: language === "ko" ? "신호 전송 (SEND)" : "SEND SIGNAL",
+            cmd: input, // 현재 입력된 커맨드 그대로 사용
+          },
+        ];
+      } else {
+        currentQuickCommands = [
+          BACK_BTN,
+          {
+            label: language === "ko" ? "메시지 전송" : "send message",
+            cmd: `transmit ${nodeId} `,
+            stageOnly: true,
+          },
+        ];
+      }
     }
   }
 
@@ -692,16 +761,28 @@ export default function TerminalShell() {
             <form
               onSubmit={handleSubmit}
               className={`flex-1 flex items-center relative transition-opacity duration-200 ${
-                !isInputActive ? "opacity-0 pointer-events-none" : "opacity-100"
-              }`}
+                !isInputVisible ? "opacity-0 invisible" : "opacity-100 visible"
+              } ${!isInputActive ? "pointer-events-none" : ""}`}
             >
-              <span
-                ref={mirrorRef}
-                className="absolute opacity-0 pointer-events-none whitespace-pre font-mono text-sm"
+              {/* [Refinement] 정밀 커서 추적 및 스크롤 동기화 레이어 (Text Mirroring) */}
+              <div
+                ref={overlayRef}
+                className="absolute inset-y-0 left-0 right-0 pointer-events-none flex items-center whitespace-pre font-mono text-sm tracking-normal overflow-hidden"
                 aria-hidden="true"
+                style={{
+                  fontFamily:
+                    'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+                }}
               >
-                {input.slice(0, cursorPosition)}
-              </span>
+                {/* 실제 보일 텍스트와 커서 */}
+                <span className="text-[var(--grey-text)]">
+                  {input.slice(0, cursorPosition)}
+                </span>
+                <span className="cursor-blink w-2 h-4 bg-[var(--orange)] shrink-0" />
+                <span className="text-[var(--grey-text)]">
+                  {input.slice(cursorPosition)}
+                </span>
+              </div>
 
               <input
                 ref={inputRef}
@@ -710,27 +791,34 @@ export default function TerminalShell() {
                 onChange={(e) => {
                   setInput(e.target.value);
                   setCursorPosition(e.target.selectionStart || 0);
+                  setTimeout(syncScroll, 0);
                 }}
+                onScroll={syncScroll}
                 onKeyDown={(e) => {
                   handleKeyDown(e);
-                  // Update position strictly after the default browser action
                   setTimeout(() => {
                     if (inputRef.current) {
                       setCursorPosition(inputRef.current.selectionStart || 0);
+                      syncScroll();
                     }
                   }, 0);
                 }}
                 onKeyUp={() => {
                   if (inputRef.current) {
                     setCursorPosition(inputRef.current.selectionStart || 0);
+                    syncScroll();
                   }
                 }}
                 onMouseUp={() => {
                   if (inputRef.current) {
                     setCursorPosition(inputRef.current.selectionStart || 0);
+                    syncScroll();
                   }
                 }}
-                onFocus={() => scrollToBottom()}
+                onFocus={() => {
+                  scrollToBottom();
+                  setTimeout(syncScroll, 0);
+                }}
                 autoFocus
                 autoComplete="off"
                 autoCorrect="off"
@@ -740,19 +828,13 @@ export default function TerminalShell() {
                 aria-label="Terminal input"
                 className="
                     peer flex-1 bg-transparent border-none outline-none
-                    font-mono text-sm text-[var(--grey-text)]
+                    font-mono text-sm text-transparent
                     placeholder:text-[var(--grey-border)]
-                    caret-transparent
+                    caret-transparent tracking-normal
                   "
-              />
-              <span
-                className={`
-                  cursor-blink w-2 h-4 bg-[var(--orange)] absolute pointer-events-none
-                  opacity-0 peer-focus:opacity-100 transition-opacity duration-100
-                `}
                 style={{
-                  left: `${inputTextWidth}px`,
-                  transition: "left 0.05s ease-out",
+                  fontFamily:
+                    'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
                 }}
               />
             </form>
@@ -760,52 +842,64 @@ export default function TerminalShell() {
         </div>
 
         <div
-          className="mt-3 flex flex-wrap gap-3 px-4"
-          style={{
-            opacity: isInputActive ? 1 : 0,
-            transform: isInputActive ? "translateY(0)" : "translateY(8px)",
-            pointerEvents: isInputActive ? "auto" : "none",
-            // 나타날 때: 부드럽게 / 사라질 때: 즉시
-            transition: isInputActive
-              ? "opacity 250ms ease-out, transform 250ms ease-out"
-              : "opacity 80ms ease-in, transform 80ms ease-in",
-          }}
+          className={`quick-cmd-wrapper mt-3 ${!isInputActive ? "collapsed" : ""}`}
         >
-          {currentQuickCommands.map((qcmd) => (
-            <button
-              key={qcmd.cmd}
-              onClick={() => {
-                if (qcmd.back) {
-                  setQuickCmdContext(null);
-                  setInput("");
-                  if (
-                    typeof window !== "undefined" &&
-                    window.matchMedia("(hover: hover) and (pointer: fine)")
-                      .matches
+          <div
+            className="quick-cmd-inner flex flex-wrap gap-3 px-4"
+            style={{
+              opacity: isInputActive ? 1 : 0,
+              transform: isInputActive ? "translateY(0)" : "translateY(8px)",
+              pointerEvents: isInputActive ? "auto" : "none",
+              transition: isInputActive
+                ? "opacity 250ms ease-out, transform 250ms ease-out"
+                : "opacity 80ms ease-in, transform 80ms ease-in",
+            }}
+          >
+            {currentQuickCommands.map((qcmd) => (
+              <button
+                key={qcmd.cmd}
+                onClick={() => {
+                  if (qcmd.back) {
+                    if (isAnimatingRef.current) return;
+                    isAnimatingRef.current = true;
+                    setIsAnimatingInput(true);
+                    setTimeout(() => {
+                      setQuickCmdContext(null);
+                      setInput("");
+                      if (
+                        typeof window !== "undefined" &&
+                        window.matchMedia("(hover: hover) and (pointer: fine)")
+                          .matches
+                      ) {
+                        inputRef.current?.focus();
+                      }
+                      setIsAnimatingInput(false);
+                      isAnimatingRef.current = false;
+                    }, 80);
+                    return;
+                  } else if (qcmd.cmd === "settings") {
+                    typeAndExecute(qcmd.cmd, { nextContext: "settings" });
+                  } else if (qcmd.cmd === "whois") {
+                    typeAndExecute(qcmd.cmd, { nextContext: "whois" });
+                  } else if (qcmd.cmd === "transmit") {
+                    typeAndExecute(qcmd.cmd, { nextContext: "transmit" });
+                  } else if (
+                    quickCmdContext === "settings" ||
+                    qcmd.cmd.startsWith("settings ") ||
+                    quickCmdContext === "whois" ||
+                    qcmd.cmd.startsWith("whois ") ||
+                    quickCmdContext === "transmit"
                   ) {
-                    inputRef.current?.focus();
+                    typeAndExecute(qcmd.cmd, {
+                      nextContext: null,
+                      stageOnly: qcmd.stageOnly,
+                    });
+                  } else {
+                    typeAndExecute(qcmd.cmd, { stageOnly: qcmd.stageOnly });
                   }
-                } else if (qcmd.cmd === "settings") {
-                  typeAndExecute(qcmd.cmd).then(() =>
-                    setQuickCmdContext("settings"),
-                  );
-                } else if (qcmd.cmd === "whois") {
-                  typeAndExecute(qcmd.cmd).then(() =>
-                    setQuickCmdContext("whois"),
-                  );
-                } else if (
-                  quickCmdContext === "settings" ||
-                  qcmd.cmd.startsWith("settings ") ||
-                  quickCmdContext === "whois" ||
-                  qcmd.cmd.startsWith("whois ")
-                ) {
-                  typeAndExecute(qcmd.cmd).then(() => setQuickCmdContext(null));
-                } else {
-                  typeAndExecute(qcmd.cmd, { stageOnly: qcmd.stageOnly });
-                }
-              }}
-              disabled={!isButtonsActive}
-              className={`
+                }}
+                disabled={!isButtonsActive}
+                className={`
                 px-1 py-0.5 border text-xs font-mono uppercase tracking-widest
                 transition-all duration-300 ease-in-out
                 focus:outline-none
@@ -816,10 +910,11 @@ export default function TerminalShell() {
                     : "border-[var(--grey-border)] text-[var(--grey-text)] hover:border-[var(--orange)] hover:text-[var(--orange)] hover:bg-[rgba(255,155,81,0.05)] active:bg-[rgba(255,155,81,0.15)] focus:border-[var(--orange)] focus:text-[var(--orange)]"
                 }
               `}
-            >
-              [{qcmd.label}]
-            </button>
-          ))}
+              >
+                [{qcmd.label}]
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </div>

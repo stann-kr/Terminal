@@ -41,6 +41,7 @@ export const COMMAND_TEXTS = {
       "lineup   — 참가 객체(아티스트) 라인업 조회",
       "gate     — 접속 게이트 좌표 및 일정 (일시/장소)",
       "whois    — 시스템 아카이브 검색 (예: whois stann)",
+      "transmit  — 시스템 통신망(방명록) 조회 및 전송",
       "link     — 외부 데이터 네트워크 연결",
       "status   — 현재 세션 가동 로그",
       "settings — 시스템 언어 및 로컬 환경 설정",
@@ -54,6 +55,7 @@ export const COMMAND_TEXTS = {
       "lineup   — Artist lineup inquiry",
       "gate     — Date & Venue",
       "whois    — System archive search (ex. whois stann)",
+      "transmit  — View and transmit messages",
       "link     — External directories",
       "status   — System operation logs",
       "settings — Language & environment settings",
@@ -69,7 +71,7 @@ export const COMMAND_TEXTS = {
       ["[ 시스템 코어 ]", "system"],
       "about, help, commands, status, settings, systems, voyage, clear",
       ["[ 데이터 아카이브 ]", "system"],
-      "lineup, gate, link, whoami, whois",
+      "lineup, gate, link, whoami, whois, transmit",
       ["[ 유틸리티 & 보안 ]", "system"],
       "date, time, echo, history, sudo",
       ["[ 시스템 진단 ]", "system"],
@@ -81,7 +83,7 @@ export const COMMAND_TEXTS = {
       ["[ SYSTEM CORE ]", "system"],
       "about, help, commands, status, settings, systems, voyage, clear",
       ["[ DATA ARCHIVE ]", "system"],
-      "lineup, gate, link, whoami, whois",
+      "lineup, gate, link, whoami, whois, transmit",
       ["[ UTILITIES & SECURITY ]", "system"],
       "date, time, echo, history, sudo",
       ["[ DIAGNOSTICS ]", "system"],
@@ -366,10 +368,10 @@ export const COMMAND_TEXTS = {
     ],
   }),
 
-  whoami: (guestId: number): I18nContentItem => ({
+  whoami: (nodeId: string): I18nContentItem => ({
     ko: [
       ["접속 세션 식별 정보", "header"],
-      `고유 ID : guest_${guestId}`,
+      `고유 ID : ${nodeId}`,
       [
         "[INFO] 해당 세션은 TERMINAL [01] 메인 시스템에 접속되었습니다.",
         "system",
@@ -380,7 +382,7 @@ export const COMMAND_TEXTS = {
     ],
     en: [
       ["SESSION IDENTIFICATION", "header"],
-      `USER_ID : guest_${guestId}`,
+      `NODE ID : ${nodeId}`,
       [
         "[INFO] This session is connected to TERMINAL [01] main system.",
         "system",
@@ -400,8 +402,10 @@ export const COMMAND_TEXTS = {
       ["역할: 시스템 아키텍트 / 최면 코어(Hypnotic Core)", "success"],
       "상태: [활성화 (ACTIVE)]",
       ["데이터 로그:", "system"],
-      "- 깊고 반복적인 오디오 텍스처를 통해 시스템의 인지 체계를 설계함.",
-      "- 메인 오디오 시퀀스 및 시스템 컨트롤러.",
+      "- 베이스 좌표: 서울. 원초적인 사운드와 고강도 에너지(High-Intensity)를 출력함.",
+      "- 본능적인 리듬과 딥 믹싱으로 이질적인(Otherworldly) 대기 상태를 렌더링함.",
+      "- 전통적 테크노의 파라미터를 확장하여 압도적인 몰입감(Immersion)을 생성.",
+      "- 현재 소속 노드: 클럽 파우스트(Faust, Seoul) 레지던트 오퍼레이터.",
       [
         "- Soundcloud: https://soundcloud.com/stannlumo",
         "link",
@@ -417,13 +421,83 @@ export const COMMAND_TEXTS = {
       ["ROLE: System Architect / Hypnotic Core", "success"],
       "STATUS: [ACTIVE]",
       ["DATA_LOG:", "system"],
-      "- Designs the system's cognitive framework through deep, repetitive audio textures.",
-      "- Main audio sequence and system controller.",
+      "- Base Coordinates: Seoul. Outputs primal sound and high-intensity energy.",
+      "- Renders otherworldly atmospheres via instinctive rhythm and deep mixing.",
+      "- Expands traditional techno parameters to generate powerful immersion.",
+      "- Current Assigned Node: Resident DJ at Club Faust (Seoul).",
       [
         "- Soundcloud: https://soundcloud.com/stannlumo",
         "link",
         "https://soundcloud.com/stannlumo",
       ],
+      "",
+    ],
+  }),
+
+  whoisMarcus: (): I18nContentItem => ({
+    ko: [
+      ["아카이브 검색: MARCUS L", "header"],
+      ["[DB 검색 중...]", "progress"],
+      " ",
+      ["엔티티 식별: MARCUS L", "success"],
+      ["역할: 섹터 네비게이터 / 로컬 네트워크 코어", "success"],
+      "상태: [활성화 (ACTIVE)]",
+      ["데이터 로그:", "system"],
+      "- 베이스 좌표: 서울. 과거(Legacy)와 미래(Futuristic)의 프로토콜을 교차하는 고출력 에너지를 발산함.",
+      "- 로컬 씬의 아키텍처를 확장하고 문화를 주도하는 핵심 인프라.",
+      "- 출력 주파수 대역: 딥 테크노, 인더스트리얼, 트랜스, 90s 클래식.",
+      "- 글로벌 라우팅 이력: 영국(UK), 베를린(Berlin).",
+      "- 2014년 서브 네트워크 '@Ameniia' 및 'Kammer Radio & Records' 구축.",
+      "- 아시아 주요 거점 노드 '클럽 파우스트(Faust)'의 소유자(Superuser)로, 댄스 뮤직의 미래 비전을 전 세계로 전송 중.",
+      "",
+    ],
+    en: [
+      ["ARCHIVE SEARCH: MARCUS L", "header"],
+      ["[SEARCHING DB...]", "progress"],
+      " ",
+      ["ENTITY: MARCUS L", "success"],
+      ["ROLE: Sector Navigator / Local Network Core", "success"],
+      "STATUS: [ACTIVE]",
+      ["DATA_LOG:", "system"],
+      "- Base Coordinates: Seoul. Outputs high-yield energy bridging legacy protocols and futuristic concepts.",
+      "- Core infrastructure expanding the local network architecture and cultural topology.",
+      "- Frequency Output Spectrum: Deep Techno, Industrial, Trance, 90s Classics.",
+      "- Global Routing History: UK, Berlin.",
+      "- Initialized sub-networks '@Ameniia' and 'Kammer Radio & Records' in 2014.",
+      "- Superuser and proprietor of Node 'FAUST', providing a crucial platform for worldwide data transfer.",
+      "",
+    ],
+  }),
+
+  whoisNusnoom: (): I18nContentItem => ({
+    ko: [
+      ["아카이브 검색: NUSNOOM", "header"],
+      ["[DB 검색 중...]", "progress"],
+      " ",
+      ["엔티티 식별: NUSNOOM", "success"],
+      ["역할: 주파수 및 대기 상태 제어 (Atmosphere Control)", "success"],
+      "상태: [활성화 (ACTIVE)]",
+      ["데이터 로그:", "system"],
+      "- 베이스 좌표: 서울. 현재 소속 노드: 클럽 파우스트(Faust) 레지던트 오퍼레이터.",
+      "- 고속 연산 비트(Fast-paced beats)에 자연의 파형(Organic Waveforms)과 아프리칸 타악기 데이터를 병합하여 최면적인 루프 생성.",
+      "- 접속된 노드(관객)들을 소리가 유기체(Living matter)로 변환되는 시뮬레이션 환경으로 동기화시킴.",
+      "- 타이베이 폰샵(Pawnshop) 노드 4주년 프로토콜에서 독자적인 사운드 시그니처를 성공적으로 전송함.",
+      "- 베를린의 전설적인 메인프레임 'Tresor'에 Faust 시스템과 함께 접속하여 글로벌 네트워크 평판을 확립.",
+      "",
+    ],
+    en: [
+      ["ARCHIVE SEARCH: NUSNOOM", "header"],
+      ["[SEARCHING DB...]", "progress"],
+      " ",
+      ["ENTITY: NUSNOOM", "success"],
+      ["ROLE: Frequency & Atmosphere Control", "success"],
+      "STATUS: [ACTIVE]",
+      ["DATA_LOG:", "system"],
+      "- Base Coordinates: Seoul. Current Assigned Node: Resident DJ at Club Faust.",
+      "- Merges high-velocity processing with organic waveforms and percussive data to generate hypnotic loops.",
+      "- Renders an untamed, simulated terrain where sound transforms into living matter.",
+      "- Executed cross-server protocol at Pawnshop (Taipei) 4th Anniversary, expanding network reach.",
+      "- Logged a major milestone at legacy mainframe 'Tresor' (Berlin) alongside the FAUST system, solidifying global status.",
       "",
     ],
   }),
@@ -516,6 +590,61 @@ export const COMMAND_TEXTS = {
     ko: [["세팅값 변경 중...", "progress"]],
     en: [["Applying settings...", "progress"]],
   } as I18nContentItem,
+
+  transmit: {
+    ko: {
+      usage: [
+        ["시스템 통신망(TRANSMISSION) 사용법", "header"],
+        "조회: transmit",
+        "전송: transmit <이름> <메시지>",
+        "",
+      ],
+      usagePrompt: [
+        "",
+        ["[안내] 통신 전송: transmit <이름> <메시지>", "system"],
+      ],
+      empty: [
+        ["수신된 통신 기록이 없습니다. 첫 신호를 전송하십시오.", "system"],
+      ],
+      loading: [["통신망 데이터를 로드 중...", "progress"]],
+      saving: [["메시지를 시스템 통신망으로 전송 중...", "progress"]],
+      success: [["통신 신호가 전송 확인.", "success"]],
+      invalidMsg: [
+        [
+          "[ ERROR ] 전송할 메시지가 없습니다. 메시지를 입력해 주세요.",
+          "error",
+        ],
+      ],
+      error: [["[ ERROR ] 전송 실패.", "error"]],
+      header: [["TRANSMISSION RECEPTION LOG", "header"], ""],
+    },
+    en: {
+      usage: [
+        ["TRANSMISSION NETWORK USAGE", "header"],
+        "View: transmit",
+        "Transmit: transmit <name> <message>",
+        "",
+      ],
+      usagePrompt: [
+        "",
+        ["[HINT] Transmit message: transmit <name> <message>", "system"],
+      ],
+      empty: [
+        ["No transmission logs received. Transmit a signal now.", "system"],
+      ],
+      loading: [["Loading transmission data...", "progress"]],
+      saving: [["Transmitting...", "progress"]],
+      success: [["Transmission confirmed.", "success"]],
+      invalidMsg: [
+        [
+          "[ ERROR ] No message provided. Please enter a message to transmit.",
+          "error",
+        ],
+      ],
+      error: [["[ ERROR ] Transmission failed.", "error"]],
+      header: [["TRANSMISSION RECEPTION LOG", "header"], ""],
+    },
+  },
 
   // ----------------------------------------------------------------------
   // 초기 로딩 및 환영 메시지 (v0.33.0 이전)
