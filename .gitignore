@@ -18,3 +18,6 @@ web/.env*.local
 
 # DO NOT ignore src!
 # Clean up any generic dot-folder ignore rules
+
+.env
+.env.local

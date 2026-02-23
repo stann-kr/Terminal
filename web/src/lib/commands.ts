@@ -12,6 +12,7 @@ import type {
   LanguageType,
   I18nContentItem,
 } from "./command-text";
+import { supabase } from "./supabase";
 
 export type { LineType, LanguageType } from "./command-text";
 
@@ -67,7 +68,10 @@ const parseContent = (
 /** 명령어 → 응답 라인 매핑 (비즈니스 로직 및 텍스트 데이터 파싱) */
 const COMMAND_MAP: Record<
   string,
-  (args: string[], lang: LanguageType) => TerminalLine[] | CommandResult
+  (
+    args: string[],
+    lang: LanguageType,
+  ) => TerminalLine[] | CommandResult | Promise<TerminalLine[] | CommandResult>
 > = {
   // 정적 콘텐츠 매핑
   help: (_, lang) => parseContent(COMMAND_TEXTS.help, lang),
@@ -167,12 +171,21 @@ const COMMAND_MAP: Record<
     if (target === "stann" || target === "stannlumo") {
       return parseContent(COMMAND_TEXTS.whoisStann(), lang);
     }
+    if (target === "marcus" || target === "marcusl") {
+      return parseContent(COMMAND_TEXTS.whoisMarcus(), lang);
+    }
+    if (target === "nusnoom") {
+      return parseContent(COMMAND_TEXTS.whoisNusnoom(), lang);
+    }
     return parseContent(COMMAND_TEXTS.whoisUnknown(target), lang);
   },
 
   whoami: (_, lang) => {
-    const guestId = Math.floor(Math.random() * 9000 + 1000);
-    return parseContent(COMMAND_TEXTS.whoami(guestId), lang);
+    let nodeId = "unknown";
+    if (typeof window !== "undefined") {
+      nodeId = localStorage.getItem("terminal_node_id") || "unknown";
+    }
+    return parseContent(COMMAND_TEXTS.whoami(nodeId), lang);
   },
 
   sudo: (args, lang) => {
@@ -212,6 +225,91 @@ const COMMAND_MAP: Record<
   weather: (_, lang) => parseContent(COMMAND_TEXTS.weather, lang),
   matrix: (_, lang) => parseContent(COMMAND_TEXTS.matrix, lang),
   history: (_, lang) => parseContent(COMMAND_TEXTS.history, lang),
+
+  transmit: async (args, lang) => {
+    const texts = COMMAND_TEXTS.transmit[lang];
+
+    // 작성 모드: transmit <이름> <메시지>
+    if (args.length >= 1) {
+      const name = args[0];
+      const message = args.slice(1).join(" ").trim();
+
+      // 메시지가 비어있는 경우 에러 출력 (단, 목록 조회 모드와 겹치지 않게 args.length 체크)
+      if (!message) {
+        return parseContent(
+          { [lang]: texts.invalidMsg } as I18nContentItem,
+          lang,
+        );
+      }
+
+      let device_id = null;
+      let user_agent = null;
+
+      if (typeof window !== "undefined") {
+        device_id = localStorage.getItem("terminal_node_id");
+        user_agent = navigator.userAgent;
+      }
+
+      const savingLines = parseContent(
+        { [lang]: texts.saving } as I18nContentItem,
+        lang,
+      );
+
+      try {
+        const { error } = await supabase
+          .from("guestbook")
+          .insert([{ name, message, device_id, user_agent }]);
+
+        if (error) throw error;
+
+        return parseContent({ [lang]: texts.success } as I18nContentItem, lang);
+      } catch (err) {
+        console.error(err);
+        return parseContent({ [lang]: texts.error } as I18nContentItem, lang);
+      }
+    }
+
+    // 목록 조회 모드
+    try {
+      const { data, error } = await supabase
+        .from("guestbook")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(10);
+
+      if (error) throw error;
+
+      const headerLines = parseContent(
+        { [lang]: texts.header } as I18nContentItem,
+        lang,
+      );
+
+      if (!data || data.length === 0) {
+        return [
+          ...headerLines,
+          ...parseContent({ [lang]: texts.empty } as I18nContentItem, lang),
+          ...parseContent(
+            { [lang]: texts.usagePrompt } as I18nContentItem,
+            lang,
+          ),
+        ];
+      }
+
+      const listLines = data.map((entry: any) => {
+        const date = new Date(entry.created_at).toLocaleDateString();
+        return line(`[${date}] ${entry.name}: ${entry.message}`, "output");
+      });
+
+      return [
+        ...headerLines,
+        ...listLines,
+        ...parseContent({ [lang]: texts.usagePrompt } as I18nContentItem, lang),
+      ];
+    } catch (err) {
+      console.error(err);
+      return parseContent({ [lang]: texts.error } as I18nContentItem, lang);
+    }
+  },
 };
 
 /**
@@ -219,10 +317,10 @@ const COMMAND_MAP: Record<
  * @param raw - 사용자가 입력한 원시 문자열
  * @returns TerminalLine 배열
  */
-export function processCommand(
+export async function processCommand(
   raw: string,
   currentLang: LanguageType = "en",
-): CommandResult {
+): Promise<CommandResult> {
   const trimmed = raw.trim();
 
   if (!trimmed) return { lines: [], shouldClear: false };
@@ -248,7 +346,7 @@ export function processCommand(
   const handler = COMMAND_MAP[handlerKey as keyof typeof COMMAND_MAP];
 
   if (handler) {
-    const result = handler(args, currentLang);
+    const result = await handler(args, currentLang);
     if (Array.isArray(result)) {
       return { lines: result, shouldClear: false };
     }
