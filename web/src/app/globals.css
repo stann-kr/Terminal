@@ -84,6 +84,7 @@
     color: var(--grey-muted);
     margin-bottom: 0.5rem !important; /* mb-6 */
     margin-top: 1rem !important;
+    margin-left: 1rem; /* 부모 pl-4 제거됨에 따라 margin 추가 */
     letter-spacing: 0.1em; /* tracking-widest */
     text-transform: uppercase;
     font-size: 0.875rem; /* text-sm */
