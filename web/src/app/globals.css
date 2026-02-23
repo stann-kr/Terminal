@@ -1,5 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Orbit&display=swap");
 @import "tailwindcss";
+
 @font-face {
   font-family: "Redline";
   src: url("/fonts/redline.ttf") format("truetype");
@@ -17,213 +18,187 @@
 
 :root {
   /* COLORS are now injected via layout.tsx from src/lib/colors.ts */
-  --font-mono: "Redline", "Orbit", "JetBrains Mono", monospace;
+  --font-mono: "Redline", "Orbit", var(--font-jetbrains-mono), monospace;
   --font-logo: "Redline", sans-serif;
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  -webkit-tap-highlight-color: transparent;
+@layer base {
+  html {
+    background-color: var(--grey-bg);
+    min-height: 100%;
+    overscroll-behavior: none;
+  }
+
+  body {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    color: var(--grey-text);
+    font-family: var(--font-mono);
+    font-size: 18px;
+    line-height: 1.6;
+    overflow: hidden;
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" on;
+  }
+
+  /* 🚨 모바일 입력창 자동 줌 방지 (최소 16px) */
+  @media (max-width: 640px) {
+    input,
+    select,
+    textarea {
+      font-size: 16px !important;
+    }
+  }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar {
+    width: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--grey-bg);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--grey-border);
+  }
 }
 
-html {
-  background-color: var(--grey-bg);
-  min-height: 100%;
-  overscroll-behavior: none;
+@layer components {
+  /* ── Terminal Header Box ── */
+  .terminal-header {
+    display: inline-block;
+    border: 1px solid var(--grey-border);
+    padding: 0.75rem 2.5rem; /* px-10 py-3 */
+    color: var(--grey-muted);
+    margin-bottom: 0.5rem !important; /* mb-6 */
+    margin-top: 1rem !important;
+    letter-spacing: 0.1em; /* tracking-widest */
+    text-transform: uppercase;
+    font-size: 0.875rem; /* text-sm */
+    line-height: 1.625; /* leading-relaxed */
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  /* ── Terminal Center Container ── */
+  .terminal-center {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem 1.5rem;
+    overflow: hidden;
+  }
+
+  .terminal-box {
+    width: 100%;
+    max-width: 640px;
+    height: 100%; /* 부모의 높이를 가득 채움 */
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Cursor Blink ── */
+  .cursor-blink {
+    display: inline-block;
+    width: 8px;
+    height: 1em;
+    background-color: var(--orange);
+    animation: blink 1s step-end infinite;
+    vertical-align: text-bottom;
+    margin-left: 2px;
+  }
+
+  /* ── Animations ── */
+  @keyframes blink {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes screen-flicker {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    92% {
+      opacity: 1;
+    }
+    93% {
+      opacity: 0.94;
+    }
+    94% {
+      opacity: 1;
+    }
+    98% {
+      opacity: 0.97;
+    }
+    99% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .screen-flicker {
+    animation: screen-flicker 6s infinite;
+  }
+  .fade-in {
+    animation: fadeIn 0.4s ease forwards;
+  }
+  .text-orange {
+    color: var(--orange);
+  }
+  .text-orange-glow {
+    color: var(--orange);
+    text-shadow:
+      0 0 8px var(--orange-glow),
+      0 0 20px var(--orange-glow);
+  }
 }
 
-body {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  background-color: transparent;
-  color: var(--grey-text);
-  font-family: var(--font-mono);
-  font-size: 18px;
-  line-height: 1.6;
-  overflow: hidden;
-  overscroll-behavior: none;
-  -webkit-overflow-scrolling: touch;
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }
 
-/* ── Scrollbar ── */
-::-webkit-scrollbar {
-  width: 4px;
-}
-::-webkit-scrollbar-track {
-  background: var(--grey-bg);
-}
-::-webkit-scrollbar-thumb {
-  background: var(--grey-border);
-}
-
-/* ── Orange Glow Text ── */
-.text-orange {
-  color: var(--orange);
-}
-
-.text-orange-glow {
-  color: var(--orange);
-  text-shadow:
-    0 0 8px var(--orange-glow),
-    0 0 20px var(--orange-glow);
-}
-
-/* ── Cursor Blink ── */
-@keyframes blink {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0;
-  }
-}
-.cursor-blink {
-  display: inline-block;
-  width: 8px;
-  height: 1em;
-  background-color: var(--orange);
-  animation: blink 1s step-end infinite;
-  vertical-align: text-bottom;
-  margin-left: 2px;
-}
-
-/* ── Glitch Effect ── */
-@keyframes glitch-skew {
-  0% {
-    transform: skew(0deg);
-  }
-  10% {
-    transform: skew(-1deg);
-  }
-  20% {
-    transform: skew(0.5deg);
-  }
-  30% {
-    transform: skew(0deg);
-  }
-  100% {
-    transform: skew(0deg);
-  }
-}
-@keyframes glitch-clip1 {
-  0% {
-    clip-path: inset(40% 0 60% 0);
-    transform: translate(-2px);
-  }
-  20% {
-    clip-path: inset(10% 0 85% 0);
-    transform: translate(2px);
-  }
-  40% {
-    clip-path: inset(70% 0 20% 0);
-    transform: translate(-1px);
-  }
-  60% {
-    clip-path: inset(50% 0 40% 0);
-    transform: translate(1px);
-  }
-  80% {
-    clip-path: inset(30% 0 65% 0);
-    transform: translate(-2px);
-  }
-  100% {
-    clip-path: inset(90% 0 5% 0);
-    transform: translate(0);
-  }
-}
-.glitch-container:hover {
-  opacity: 0.85;
-  transition: opacity 0.2s ease;
-}
-
-/* ── Screen Flicker ── */
-@keyframes screen-flicker {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  92% {
-    opacity: 1;
-  }
-  93% {
-    opacity: 0.94;
-  }
-  94% {
-    opacity: 1;
-  }
-  98% {
-    opacity: 0.97;
-  }
-  99% {
-    opacity: 1;
-  }
-}
-.screen-flicker {
-  animation: screen-flicker 6s infinite;
-}
-
-/* ── Fade In ── */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-.fade-in {
-  animation: fadeIn 0.4s ease forwards;
-}
-
-/* ── Terminal Center Container ── */
-.terminal-center {
-  display: flex;
-  flex-direction: column;
-  height: 100dvh;
-  justify-content: center;
-  align-items: center;
-  padding: 2rem 1.5rem;
-  overflow: hidden;
-}
-
-.terminal-box {
-  width: 100%;
-  max-width: 640px;
-  height: 100%; /* 부모의 높이를 가득 채움 */
-  display: flex;
-  flex-direction: column;
-}
-
-/* ── Mobile Responsive ── */
+/* ── Mobile Responsive (Using Base Layer logic for font-size) ── */
 @media (max-width: 640px) {
   html,
   body {
     font-size: 16px;
   }
-
   .terminal-center {
     padding: 1.5rem 0.5rem;
     justify-content: flex-start;
     padding-top: max(1.5rem, env(safe-area-inset-top));
     padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
   }
-
   .cursor-blink {
     width: 6px;
-  }
-
-  /* 🚨 모바일 입력창 자동 줌 방지 (최소 16px) */
-  input,
-  select,
-  textarea {
-    font-size: 16px !important;
   }
 }
 
@@ -234,16 +209,7 @@ body {
   }
 }
 
-/* ── Hide Scrollbar 유틸리티 ── */
-.scrollbar-hide {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
-}
-.scrollbar-hide::-webkit-scrollbar {
-  display: none; /* Chrome, Safari and Opera */
-}
-
-/* ── Safe area support (notch devices) ── */
+/* ── Safe area support ── */
 @supports (padding-top: env(safe-area-inset-top)) {
   .terminal-center {
     padding-left: max(1rem, env(safe-area-inset-left));
