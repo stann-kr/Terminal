@@ -24,6 +24,7 @@
     "typescript": "5.5.3"
   },
   "optionalDependencies": {
+    "@tailwindcss/oxide-linux-x64-gnu": "4.2.0",
     "lightningcss-linux-x64-gnu": "1.31.1"
   }
 }
