@@ -22,7 +22,6 @@ export type ContentItem =
 
 export interface BootLine {
   text: string;
-  delay: number;
   type: LineType;
 }
 
@@ -190,57 +189,21 @@ export const COMMAND_TEXTS = {
   // ----------------------------------------------------------------------
 
   bootSequence: [
-    { text: "TERMINAL CORE — SYSTEM BOOT INITIATED", delay: 0, type: "system" },
-    { text: "...", delay: 150, type: "system" },
-    { text: "[ OK ] Loading kernel modules...", delay: 350, type: "output" },
-    { text: "[ OK ] Mounting hyperdrive array...", delay: 600, type: "output" },
-    {
-      text: "[ OK ] Initializing navigation matrix...",
-      delay: 900,
-      type: "output",
-    },
-    {
-      text: "[ OK ] Calibrating frequency bands...",
-      delay: 1200,
-      type: "output",
-    },
-    {
-      text: "[ -- ] Scanning for explorers manifest...",
-      delay: 1500,
-      type: "system",
-    },
-    {
-      text: "[ OK ] Explorers loaded: 3 personnel confirmed.",
-      delay: 1800,
-      type: "output",
-    },
-    {
-      text: "[ -- ] Verifying gate coordinates...",
-      delay: 2100,
-      type: "system",
-    },
-    {
-      text: "[ OK ] Gate: Club Faust, Seoul / 2026.03.07",
-      delay: 2450,
-      type: "output",
-    },
-    { text: "...", delay: 2800, type: "system" },
-    {
-      text: "────────────────────",
-      delay: 3000,
-      type: "system",
-    },
-    { text: "  STATUS: OPERATIONAL", delay: 3200, type: "success" },
-    {
-      text: "  Maiden Voyage to the Unknown Sector.",
-      delay: 3450,
-      type: "success",
-    },
-    {
-      text: "────────────────────",
-      delay: 3650,
-      type: "system",
-    },
+    { text: "TERMINAL CORE — SYSTEM BOOT INITIATED", type: "system" },
+    { text: "...", type: "system" },
+    { text: "[ OK ] Loading kernel modules...", type: "output" },
+    { text: "[ OK ] Mounting hyperdrive array...", type: "output" },
+    { text: "[ OK ] Initializing navigation matrix...", type: "output" },
+    { text: "[ OK ] Calibrating frequency bands...", type: "output" },
+    { text: "[ -- ] Scanning for explorers manifest...", type: "system" },
+    { text: "[ OK ] Explorers loaded: 3 personnel confirmed.", type: "output" },
+    { text: "[ -- ] Verifying gate coordinates...", type: "system" },
+    { text: "[ OK ] Gate: Club Faust, Seoul / 2026.03.07", type: "output" },
+    { text: "...", type: "system" },
+    { text: "────────────────────", type: "system" },
+    { text: "  STATUS: OPERATIONAL", type: "success" },
+    { text: "  Maiden Voyage to the Unknown Sector.", type: "success" },
+    { text: "────────────────────", type: "system" },
   ] as BootLine[],
 
   welcomeMessage: [

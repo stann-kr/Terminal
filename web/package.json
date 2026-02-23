@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npm install --os=linux --cpu=x64 libc && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
@@ -22,5 +22,8 @@
     "eslint-config-next": "14.2.14",
     "tailwindcss": "4.0.0",
     "typescript": "5.5.3"
+  },
+  "optionalDependencies": {
+    "lightningcss-linux-x64-gnu": "1.31.1"
   }
 }
