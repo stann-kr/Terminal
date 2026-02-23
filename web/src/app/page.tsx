@@ -1,5 +1,3 @@
-"use client";
-
 import TerminalShell from "@/components/TerminalShell";
 
 /**

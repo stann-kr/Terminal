@@ -12,7 +12,8 @@ export type LineType =
   | "success"
   | "system"
   | "input"
-  | "link";
+  | "link"
+  | "header";
 
 export type ContentItem =
   | string
@@ -27,9 +28,7 @@ export interface BootLine {
 
 export const COMMAND_TEXTS = {
   help: [
-    ["┌──────────────────────────┐", "system"],
-    ["│ TERMINAL CORE INDEX      │", "system"],
-    ["└──────────────────────────┘", "system"],
+    ["TERMINAL CORE INDEX", "header"],
     ["  [ INFORMATION ]", "system"],
     "  about    — 프로젝트 개요 및 목적",
     "  lineup   — 아티스트 라인업 조회",
@@ -46,9 +45,7 @@ export const COMMAND_TEXTS = {
   ] as ContentItem[],
 
   about: [
-    ["┌──────────────────────────┐", "system"],
-    ["│ THE UNIVERSAL JOURNEY    │", "system"],
-    ["└──────────────────────────┘", "system"],
+    ["THE UNIVERSAL JOURNEY", "header"],
     "  TERMINAL은 미지의 구역으로 향하는 항해의 기점이자, ",
     "  오디오 신호와 데이터가 교차하는 무기질적인 정거장입니다.",
     "  ",
@@ -66,21 +63,17 @@ export const COMMAND_TEXTS = {
   ] as ContentItem[],
 
   lineup: [
-    ["┌──────────────────────────┐", "system"],
-    ["│ AUDIO CONTROLLERS [01]   │", "system"],
-    ["└──────────────────────────┘", "system"],
+    ["AUDIO CONTROLLERS [01]", "header"],
     ["  [01]  STANN LUMO", "success"],
     ["  [02]  MARCUS L", "success"],
     ["  [03]  MOONSUN", "success"],
-    ["────────────────────────────", "system"],
+    ["────────────────────", "system"],
     "  Format: Hypnotic, Futuristic Techno",
     "",
   ] as ContentItem[],
 
   voyage: [
-    ["┌──────────────────────────┐", "system"],
-    ["│ VOYAGE DIRECTIVE 01      │", "system"],
-    ["└──────────────────────────┘", "system"],
+    ["VOYAGE DIRECTIVE 01", "header"],
     "  [ MAIDEN VOYAGE TO THE UNKNOWN SECTOR ]",
     "  Objective: 미관측 시공간 진입 및 주파수 동기화.",
     ["  Status: 궤도 진입 중 (IN PROGRESS)", "success"],
@@ -92,9 +85,7 @@ export const COMMAND_TEXTS = {
   ] as ContentItem[],
 
   systems: [
-    ["┌──────────────────────────┐", "system"],
-    ["│ HARDWARE DIAGNOSTICS     │", "system"],
-    ["└──────────────────────────┘", "system"],
+    ["HARDWARE DIAGNOSTICS", "header"],
     ["  Core Logic:      [ONLINE / STABLE]", "success"],
     "  Routing:         [CALCULATING -> FAUST_SEOUL]",
     ["  Audio Engine:    [LOCKED ON 138.00 BPM]", "success"],
@@ -103,21 +94,17 @@ export const COMMAND_TEXTS = {
   ] as ContentItem[],
 
   gate: [
-    ["┌──────────────────────────┐", "system"],
-    ["│ TARGET COORDINATES [01]  │", "system"],
-    ["└──────────────────────────┘", "system"],
+    ["TARGET COORDINATES [01]", "header"],
     "  DATE  : 2026.03.07 (SAT)",
     "  VENUE : Club Faust, Seoul",
     "  DESTINATION: The Hidden Layer",
-    ["────────────────────────────", "system"],
+    ["────────────────────", "system"],
     "  * Maiden Voyage to the Unknown Sector.",
     "",
   ] as ContentItem[],
 
   link: [
-    ["┌──────────────────────────┐", "system"],
-    ["│ EXTERNAL LINKS           │", "system"],
-    ["└──────────────────────────┘", "system"],
+    ["EXTERNAL LINKS", "header"],
     ["  * Stann Lumo Archive", "link", "https://www.instagram.com/stannlumo/"],
     ["  * Terminal Network", "link", "https://www.instagram.com/terminal_hub/"],
     "",
@@ -128,9 +115,7 @@ export const COMMAND_TEXTS = {
   // ----------------------------------------------------------------------
 
   status: (timestamp: string): ContentItem[] => [
-    ["┌──────────────────────────┐", "system"],
-    ["│ SYSTEM STATUS REPORT     │", "system"],
-    ["└──────────────────────────┘", "system"],
+    ["SYSTEM STATUS REPORT", "header"],
     ["  TERMINAL     [ OPERATIONAL ]", "success"],
     ["  SEQUENCE     [ ACTIVE      ]", "success"],
     "  AUDIO BUFFER [ CHARGING... ]",
@@ -139,9 +124,7 @@ export const COMMAND_TEXTS = {
   ],
 
   whoami: (guestId: number): ContentItem[] => [
-    ["┌──────────────────────────┐", "system"],
-    ["│ SESSION IDENTIFICATION   │", "system"],
-    ["└──────────────────────────┘", "system"],
+    ["SESSION IDENTIFICATION", "header"],
     `  USER_ID : guest_${guestId}`,
     ["  [INFO] 해당 세션은 TERMINAL [01] 궤도에 접속되었습니다.", "system"],
     "  ROLE    : Observer / Node",
@@ -150,9 +133,7 @@ export const COMMAND_TEXTS = {
   ],
 
   whoisStann: (): ContentItem[] => [
-    ["┌──────────────────────────┐", "system"],
-    ["│ ARCHIVE SEARCH: STANN    │", "system"],
-    ["└──────────────────────────┘", "system"],
+    ["ARCHIVE SEARCH: STANN", "header"],
     "  [SEARCHING DB...] ▒▒▒▒▒░░░░░ ",
     "  ",
     ["  ENTITY: STANN LUMO", "success"],
@@ -179,9 +160,7 @@ export const COMMAND_TEXTS = {
   ],
 
   sudoStann: (): ContentItem[] => [
-    ["┌──────────────────────────┐", "system"],
-    ["│ SYSTEM OVERRIDE          │", "system"],
-    ["└──────────────────────────┘", "system"],
+    ["SYSTEM OVERRIDE", "header"],
     "  [AUTHENTICATING...] ▒▒▒▒▒▒▒▒▒▒",
     ["  ACCESS GRANTED. Welcome back, ROOT.", "success"],
     ["  [SYSTEM MESSAGE] 모든 보안 프로토콜이 해제되었습니다.", "system"],
@@ -190,9 +169,7 @@ export const COMMAND_TEXTS = {
   ],
 
   sudoError: (): ContentItem[] => [
-    ["┌──────────────────────────┐", "system"],
-    ["│ [ ERROR ] ACCESS DENIED. │", "system"],
-    ["└──────────────────────────┘", "system"],
+    ["[ ERROR ] ACCESS DENIED.", "header"],
     ["  Unauthorized access attempt logged.", "error"],
     "",
   ],
@@ -249,7 +226,7 @@ export const COMMAND_TEXTS = {
     },
     { text: "...", delay: 2800, type: "system" },
     {
-      text: "─────────────────────────────────────────",
+      text: "────────────────────",
       delay: 3000,
       type: "system",
     },
@@ -260,16 +237,15 @@ export const COMMAND_TEXTS = {
       type: "success",
     },
     {
-      text: "─────────────────────────────────────────",
+      text: "────────────────────",
       delay: 3650,
       type: "system",
     },
   ] as BootLine[],
 
   welcomeMessage: [
-    ["─────────────────────────────────────────", "system"],
     ["  TERMINAL CORE SYSTEM — ACCESS GRANTED", "success"],
     ["  Type 'help' to view available commands.", "output"],
-    ["─────────────────────────────────────────", "system"],
+    ["────────────────────", "system"],
   ] as ContentItem[],
 };
