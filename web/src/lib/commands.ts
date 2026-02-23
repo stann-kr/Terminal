@@ -34,7 +34,8 @@ export interface CommandResult {
 }
 
 /** 고유 ID 생성 유틸리티 */
-export const uid = () => `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+export const uid = () =>
+  `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
 /** 단일 라인 생성 헬퍼 */
 const line = (
@@ -70,6 +71,7 @@ const COMMAND_MAP: Record<
 > = {
   // 정적 콘텐츠 매핑
   help: (_, lang) => parseContent(COMMAND_TEXTS.help, lang),
+  commands: (_, lang) => parseContent(COMMAND_TEXTS.commands, lang),
   about: (_, lang) => parseContent(COMMAND_TEXTS.about, lang),
   lineup: (_, lang) => parseContent(COMMAND_TEXTS.lineup, lang),
   link: (_, lang) => parseContent(COMMAND_TEXTS.link, lang),
@@ -155,7 +157,12 @@ const COMMAND_MAP: Record<
   whois: (args, lang) => {
     const target = args?.[0]?.toLowerCase() || "";
     if (!target) {
-      return [line(lang === "ko" ? "usage: whois <name>" : "usage: whois <name>", "error")];
+      return [
+        line(
+          lang === "ko" ? "usage: whois <name>" : "usage: whois <name>",
+          "error",
+        ),
+      ];
     }
     if (target === "stann" || target === "stannlumo") {
       return parseContent(COMMAND_TEXTS.whoisStann(), lang);
@@ -185,6 +192,26 @@ const COMMAND_MAP: Record<
     }
     return parseContent(COMMAND_TEXTS.echoOutput(args.join(" ")), lang);
   },
+
+  date: (_, lang) => {
+    const ts = new Date().toLocaleString("ko-KR", {
+      timeZone: "Asia/Seoul",
+      hour12: false,
+    });
+    return parseContent(COMMAND_TEXTS.dateTime(ts), lang);
+  },
+  time: (_, lang) => {
+    const ts = new Date().toLocaleString("ko-KR", {
+      timeZone: "Asia/Seoul",
+      hour12: false,
+    });
+    return parseContent(COMMAND_TEXTS.dateTime(ts), lang);
+  },
+  ping: (_, lang) => parseContent(COMMAND_TEXTS.ping, lang),
+  scan: (_, lang) => parseContent(COMMAND_TEXTS.weather, lang),
+  weather: (_, lang) => parseContent(COMMAND_TEXTS.weather, lang),
+  matrix: (_, lang) => parseContent(COMMAND_TEXTS.matrix, lang),
+  history: (_, lang) => parseContent(COMMAND_TEXTS.history, lang),
 };
 
 /**
@@ -199,6 +226,15 @@ export function processCommand(
   const trimmed = raw.trim();
 
   if (!trimmed) return { lines: [], shouldClear: false };
+
+  const swearRegex =
+    /(씨발|시발|개새끼|지랄|좆|미친|병신|애미|니미|새꺄|씹|썅|호로)/;
+  if (swearRegex.test(trimmed)) {
+    return {
+      lines: parseContent(COMMAND_TEXTS.swearWord(trimmed), currentLang),
+      shouldClear: false,
+    };
+  }
 
   const parts = trimmed.split(/\s+/);
   const cmd = parts[0].toLowerCase();
