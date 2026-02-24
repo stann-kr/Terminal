@@ -112,7 +112,7 @@ export const COMMAND_TEXTS = {
       "이곳에 접속한 모든 객체가 개별 노드(Node)로서 시스템 연산에 참여하고,",
       "미지의 궤도를 함께 탐색하는 완전한 동기화를 목표로 합니다.",
       " ",
-      "터미널 마스터 : STANN LUMO",
+      "터미널 아키텍트 : STANN LUMO",
       "",
     ],
     en: [
@@ -136,7 +136,7 @@ export const COMMAND_TEXTS = {
       "participating in the system's calculation to explore uncharted",
       "trajectories together.",
       " ",
-      "TERMINAL MASTER : STANN LUMO",
+      "TERMINAL ARCHITECT : STANN LUMO",
       "",
     ],
   } as I18nContentItem,
