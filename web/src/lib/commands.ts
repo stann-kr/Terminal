@@ -82,6 +82,7 @@ const COMMAND_MAP: Record<
   voyage: (_, lang) => parseContent(COMMAND_TEXTS.voyage, lang),
   systems: (_, lang) => parseContent(COMMAND_TEXTS.systems, lang),
   gate: (_, lang) => parseContent(COMMAND_TEXTS.gate, lang),
+  event: (_, lang) => parseContent(COMMAND_TEXTS.event, lang),
 
   settings: (args, lang) => {
     if (!args || args.length === 0) {
@@ -154,8 +155,17 @@ const COMMAND_MAP: Record<
 
   // 동적 콘텐츠 매핑
   status: (_, lang) => {
-    const timestamp = new Date().toISOString().replace("T", " ").slice(0, 19);
-    return parseContent(COMMAND_TEXTS.status(timestamp), lang);
+    const now = new Date();
+    const timestamp = now.toLocaleString("ko-KR", {
+      timeZone: "Asia/Seoul",
+      hour12: false,
+    });
+    const eventDate = new Date("2026-03-07T00:00:00+09:00");
+    const diffMs = eventDate.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    const dDay =
+      diffDays > 0 ? `D-${diffDays}` : diffDays === 0 ? "D-DAY" : "LAUNCHED";
+    return parseContent(COMMAND_TEXTS.status(timestamp, dDay), lang);
   },
 
   whois: (args, lang) => {
