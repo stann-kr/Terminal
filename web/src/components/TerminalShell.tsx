@@ -46,6 +46,7 @@ const AVAILABLE_COMMANDS = [
   "clear",
   "commands",
   "echo",
+  "event",
   "gate",
   "help",
   "lineup",
