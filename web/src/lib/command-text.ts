@@ -673,12 +673,12 @@ export const COMMAND_TEXTS = {
       usage: [
         ["시스템 통신망(TRANSMISSION) 사용법", "header"],
         "조회: transmit",
-        "전송: transmit name message",
+        "전송: transmit <name> <message>",
         "",
       ],
       usagePrompt: [
         "",
-        ["[안내] 통신 전송: transmit name message", "system"],
+        ["[안내] 통신 전송: transmit <name> <message>", "system"],
       ],
       empty: [
         ["수신된 통신 기록이 없습니다. 첫 신호를 전송하십시오.", "system"],
@@ -699,12 +699,12 @@ export const COMMAND_TEXTS = {
       usage: [
         ["TRANSMISSION NETWORK USAGE", "header"],
         "View: transmit",
-        "Transmit: transmit name message",
+        "Transmit: transmit <name> <message>",
         "",
       ],
       usagePrompt: [
         "",
-        ["[HINT] Transmit: transmit name message", "system"],
+        ["[HINT] Transmit: transmit <name> <message>", "system"],
       ],
       empty: [
         ["No transmission logs received. Transmit a signal now.", "system"],

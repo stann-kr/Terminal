@@ -38,6 +38,9 @@ export interface CommandResult {
 export const uid = () =>
   `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
+/** 유저가 <name> 형태로 입력했을 때 꺾쇠 자동 제거 */
+const stripBrackets = (str: string): string => str.replace(/^<|>$/g, "");
+
 /** 단일 라인 생성 헬퍼 */
 const line = (
   text: string,
@@ -169,7 +172,7 @@ const COMMAND_MAP: Record<
   },
 
   whois: (args, lang) => {
-    const target = args?.[0]?.toLowerCase() || "";
+    const target = stripBrackets(args?.[0] ?? "").toLowerCase();
     if (!target) {
       return [
         line(
@@ -241,7 +244,7 @@ const COMMAND_MAP: Record<
 
     // 작성 모드: transmit <이름> <메시지>
     if (args.length >= 1) {
-      const name = args[0];
+      const name = stripBrackets(args[0]);
       const message = args.slice(1).join(" ").trim();
 
       // 메시지가 비어있는 경우 에러 출력 (단, 목록 조회 모드와 겹치지 않게 args.length 체크)
