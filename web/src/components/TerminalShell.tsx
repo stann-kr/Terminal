@@ -52,11 +52,20 @@ const AVAILABLE_COMMANDS = [
   "lineup",
   "link",
   "settings",
+  "settings lang ko",
+  "settings lang en",
+  "settings theme dark",
+  "settings theme light",
+  "settings reset",
   "status",
   "sudo",
+  "sudo login stann",
   "systems",
   "voyage",
   "whois",
+  "whois stann",
+  "whois marcus",
+  "whois nusnoom",
   "whoami",
   "transmit",
   "date",
@@ -418,7 +427,58 @@ export default function TerminalShell() {
       setCommandHistory((prev) => [...prev, trimmedCmd]);
       setHistoryIndex(-1);
 
-      const result = await processCommand(trimmedCmd, language);
+      // transmit 커맨드: DB 통신 중 진행 바 병렬 표시
+      const cmdParts = trimmedCmd.split(/\s+/);
+      const isTxList =
+        cmdParts[0].toLowerCase() === "transmit" && cmdParts.length === 1;
+      const isTxSend =
+        cmdParts[0].toLowerCase() === "transmit" && cmdParts.length >= 3;
+
+      // 로딩 바 완료 Promise (transmit이 아닌 경우 즉시 resolve)
+      let loadingBarDone: Promise<void> = Promise.resolve();
+
+      if ((isTxList || isTxSend) && language) {
+        const fastMode =
+          localStorage.getItem("terminal_fast_mode") === "true";
+        const loadingEntry = isTxSend
+          ? COMMAND_TEXTS.transmit[language].saving[0]
+          : COMMAND_TEXTS.transmit[language].loading[0];
+        const loadingText = Array.isArray(loadingEntry)
+          ? loadingEntry[0]
+          : String(loadingEntry);
+        const loadingId = `tx-loading-${uid()}`;
+        const barLen = 10;
+        const full = "▓";
+        const empty = "░";
+        setHistory((prev) => [
+          ...prev,
+          {
+            id: loadingId,
+            text: `${loadingText} [${empty.repeat(barLen)}]`,
+            type: "progress" as const,
+          },
+        ]);
+        loadingBarDone = (async () => {
+          for (let i = 1; i <= barLen; i++) {
+            await new Promise((r) => setTimeout(r, fastMode ? 20 : 65));
+            setHistory((prev) =>
+              prev.map((h) =>
+                h.id === loadingId
+                  ? {
+                      ...h,
+                      text: `${loadingText} [${full.repeat(i)}${empty.repeat(barLen - i)}]`,
+                    }
+                  : h,
+              ),
+            );
+          }
+        })();
+      }
+
+      const [result] = await Promise.all([
+        processCommand(trimmedCmd, language),
+        loadingBarDone,
+      ]);
 
       // Settings 반영 전 피드백 (Language, Theme, Reset)
       if (
@@ -570,7 +630,7 @@ export default function TerminalShell() {
       } else if (e.key === "Tab") {
         e.preventDefault();
         if (language === null) return;
-        const val = (e.target as HTMLInputElement).value.trim().toLowerCase();
+        const val = (e.target as HTMLInputElement).value.trimStart().toLowerCase();
         if (!val) return;
         const match = AVAILABLE_COMMANDS.find((c) => c.startsWith(val));
         if (match && match !== val) {
@@ -825,7 +885,7 @@ export default function TerminalShell() {
                 autoCorrect="off"
                 autoCapitalize="none"
                 spellCheck={false}
-                placeholder="enter command..."
+                placeholder={language === "ko" ? "명령어 입력..." : "enter command..."}
                 aria-label="Terminal input"
                 className="
                     peer flex-1 bg-transparent border-none outline-none

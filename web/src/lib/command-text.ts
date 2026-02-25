@@ -693,7 +693,11 @@ export const COMMAND_TEXTS = {
         ],
       ],
       error: [["[ ERROR ] 전송 실패.", "error"]],
-      header: [["TRANSMISSION RECEPTION LOG", "header"], ""],
+      header: (page: number): ContentItem[] => [
+        ["TRANSMISSION RECEPTION LOG", "header"],
+        [page === 1 ? "[ 최근 10건 표시 ]" : `[ ${(page - 1) * 10 + 1}~${page * 10}번째 메시지 ]`, "system"],
+        "",
+      ],
     },
     en: {
       usage: [
@@ -719,7 +723,11 @@ export const COMMAND_TEXTS = {
         ],
       ],
       error: [["[ ERROR ] Transmission failed.", "error"]],
-      header: [["TRANSMISSION RECEPTION LOG", "header"], ""],
+      header: (page: number): ContentItem[] => [
+        ["TRANSMISSION RECEPTION LOG", "header"],
+        [page === 1 ? "[ SHOWING LAST 10 ENTRIES ]" : `[ ENTRIES ${(page - 1) * 10 + 1}–${page * 10} ]`, "system"],
+        "",
+      ],
     },
   },
 

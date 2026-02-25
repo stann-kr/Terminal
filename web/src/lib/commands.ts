@@ -7,7 +7,6 @@
 
 import { COMMAND_TEXTS } from "./command-text";
 import type {
-  ContentItem,
   LineType,
   LanguageType,
   I18nContentItem,
@@ -40,6 +39,18 @@ export const uid = () =>
 
 /** 유저가 <name> 형태로 입력했을 때 꺾쇠 자동 제거 */
 const stripBrackets = (str: string): string => str.replace(/^<|>$/g, "");
+
+/** 꺾쇠 기호 포함 여부 확인 */
+const hasBrackets = (str: string): boolean => /[<>]/.test(str);
+
+/** 꺾쇠 자동 제거 시스템 로그 라인 생성 */
+const bracketNotice = (lang: LanguageType): TerminalLine =>
+  line(
+    lang === "ko"
+      ? "[ SYS ] 꺾쇠 기호(<>)가 감지되어 자동으로 제거 후 처리되었습니다."
+      : "[ SYS ] Angle brackets detected and stripped automatically.",
+    "system",
+  );
 
 /** 단일 라인 생성 헬퍼 */
 const line = (
@@ -172,25 +183,30 @@ const COMMAND_MAP: Record<
   },
 
   whois: (args, lang) => {
-    const target = stripBrackets(args?.[0] ?? "").toLowerCase();
+    const raw = args?.[0] ?? "";
+    const target = stripBrackets(raw).toLowerCase();
+    const notice = hasBrackets(raw) ? [bracketNotice(lang)] : [];
+
     if (!target) {
       return [
         line(
-          lang === "ko" ? "usage: whois <name>" : "usage: whois <name>",
+          lang === "ko"
+            ? "사용법 : whois <name>"
+            : "usage : whois <name>",
           "error",
         ),
       ];
     }
     if (target === "stann" || target === "stannlumo") {
-      return parseContent(COMMAND_TEXTS.whoisStann(), lang);
+      return [...notice, ...parseContent(COMMAND_TEXTS.whoisStann(), lang)];
     }
     if (target === "marcus" || target === "marcusl") {
-      return parseContent(COMMAND_TEXTS.whoisMarcus(), lang);
+      return [...notice, ...parseContent(COMMAND_TEXTS.whoisMarcus(), lang)];
     }
     if (target === "nusnoom") {
-      return parseContent(COMMAND_TEXTS.whoisNusnoom(), lang);
+      return [...notice, ...parseContent(COMMAND_TEXTS.whoisNusnoom(), lang)];
     }
-    return parseContent(COMMAND_TEXTS.whoisUnknown(target), lang);
+    return [...notice, ...parseContent(COMMAND_TEXTS.whoisUnknown(target), lang)];
   },
 
   whoami: (_, lang) => {
@@ -241,13 +257,18 @@ const COMMAND_MAP: Record<
 
   transmit: async (args, lang) => {
     const texts = COMMAND_TEXTS.transmit[lang];
+    const PAGE_SIZE = 10;
+
+    // 페이지 조회 모드 (히든): transmit <숫자>
+    const isPageArg = args.length === 1 && /^\d+$/.test(args[0]);
 
     // 작성 모드: transmit <이름> <메시지>
-    if (args.length >= 1) {
-      const name = stripBrackets(args[0]);
+    if (args.length >= 1 && !isPageArg) {
+      const rawName = args[0];
+      const name = stripBrackets(rawName);
       const message = args.slice(1).join(" ").trim();
+      const notice = hasBrackets(rawName) ? [bracketNotice(lang)] : [];
 
-      // 메시지가 비어있는 경우 에러 출력 (단, 목록 조회 모드와 겹치지 않게 args.length 체크)
       if (!message) {
         return parseContent(
           { [lang]: texts.invalidMsg } as I18nContentItem,
@@ -263,11 +284,6 @@ const COMMAND_MAP: Record<
         user_agent = navigator.userAgent;
       }
 
-      const savingLines = parseContent(
-        { [lang]: texts.saving } as I18nContentItem,
-        lang,
-      );
-
       try {
         const { error } = await supabase
           .from("guestbook")
@@ -275,25 +291,34 @@ const COMMAND_MAP: Record<
 
         if (error) throw error;
 
-        return parseContent({ [lang]: texts.success } as I18nContentItem, lang);
+        return [
+          ...notice,
+          ...parseContent({ [lang]: texts.success } as I18nContentItem, lang),
+        ];
       } catch (err) {
         console.error(err);
-        return parseContent({ [lang]: texts.error } as I18nContentItem, lang);
+        return [
+          ...notice,
+          ...parseContent({ [lang]: texts.error } as I18nContentItem, lang),
+        ];
       }
     }
 
-    // 목록 조회 모드
+    // 목록 조회 모드 (페이지 지원)
+    const page = isPageArg ? Math.max(1, parseInt(args[0], 10)) : 1;
+    const offset = (page - 1) * PAGE_SIZE;
+
     try {
       const { data, error } = await supabase
         .from("guestbook")
         .select("*")
         .order("created_at", { ascending: false })
-        .limit(10);
+        .range(offset, offset + PAGE_SIZE - 1);
 
       if (error) throw error;
 
       const headerLines = parseContent(
-        { [lang]: texts.header } as I18nContentItem,
+        { [lang]: texts.header(page) } as I18nContentItem,
         lang,
       );
 
@@ -309,7 +334,13 @@ const COMMAND_MAP: Record<
       }
 
       const listLines = data.map((entry: any) => {
-        const date = new Date(entry.created_at).toLocaleDateString();
+        const d = new Date(entry.created_at);
+        const yy = String(d.getFullYear()).slice(2);
+        const mm = String(d.getMonth() + 1).padStart(2, "0");
+        const dd = String(d.getDate()).padStart(2, "0");
+        const hh = String(d.getHours()).padStart(2, "0");
+        const min = String(d.getMinutes()).padStart(2, "0");
+        const date = `${yy}-${mm}-${dd} ${hh}:${min}`;
         return line(`[${date}] ${entry.name}: ${entry.message}`, "output");
       });
 
