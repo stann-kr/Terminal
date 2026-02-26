@@ -14,6 +14,7 @@ export const LINE_COLOR: Record<TerminalLine["type"], string> = {
 };
 
 export type QuickCommand = {
+  id?: string;
   label: string;
   cmd: string;
   stageOnly?: boolean;

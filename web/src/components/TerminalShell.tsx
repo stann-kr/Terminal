@@ -146,7 +146,7 @@ export default function TerminalShell() {
       typeof window !== "undefined" &&
       window.matchMedia("(hover: hover) and (pointer: fine)").matches
     ) {
-      inputRef.current?.focus();
+      inputRef.current?.focus({ preventScroll: true });
     }
   };
 

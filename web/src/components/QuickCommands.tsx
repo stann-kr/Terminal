@@ -62,7 +62,7 @@ export default function QuickCommands({
       >
         {displayedCommands.map((qcmd) => (
           <button
-            key={qcmd.cmd}
+            key={qcmd.id || qcmd.cmd}
             onClick={() => {
               if (isLiveMode) {
                 handleCommand(qcmd.cmd);

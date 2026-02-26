@@ -42,6 +42,8 @@ export function useTypeAndExecute(
       if (!opts?.stageOnly) {
         await new Promise((r) => setTimeout(r, 90));
         await handleCommand(cmd);
+        setInput("");
+        setCursorPosition(0);
 
         if (opts?.nextContext !== undefined) {
           await new Promise((r) => setTimeout(r, 80));

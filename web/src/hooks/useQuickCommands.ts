@@ -109,6 +109,7 @@ export function useQuickCommands(
           commands = [
             BACK_BTN,
             {
+              id: "name_submit",
               label:
                 language === "ko" ? `"${nameVal}" 설정` : `set "${nameVal}"`,
               cmd: `name ${nameVal}`,
@@ -133,6 +134,7 @@ export function useQuickCommands(
           commands = [
             BACK_BTN,
             {
+              id: "transmit_submit",
               label: language === "ko" ? "신호 전송 (SEND)" : "SEND SIGNAL",
               cmd: input,
             },
@@ -191,21 +193,30 @@ export function useQuickCommands(
 
   latestCommandsRef.current = currentQuickCommands;
 
-  useEffect(() => {
-    const prev = displayedCommands.map((c) => c.cmd).join(",");
-    const next = latestCommandsRef.current.map((c) => c.cmd).join(",");
+  const prevStructureRef = useRef<string>("");
 
-    if (prev !== next) {
+  useEffect(() => {
+    const nextStructure = latestCommandsRef.current
+      .map((c) => c.id || c.cmd)
+      .join(",");
+
+    if (
+      prevStructureRef.current &&
+      prevStructureRef.current !== nextStructure
+    ) {
       setIsCmdsFading(true);
       const timer = setTimeout(() => {
         setDisplayedCommands(latestCommandsRef.current);
+        prevStructureRef.current = nextStructure;
         setIsCmdsFading(false);
       }, 100);
       return () => clearTimeout(timer);
     } else {
       setIsCmdsFading(false);
+      setDisplayedCommands(latestCommandsRef.current);
+      prevStructureRef.current = nextStructure;
     }
-  }, [currentQuickCommands, displayedCommands]);
+  }, [currentQuickCommands]);
 
   return { isCmdsFading, displayedCommands };
 }
