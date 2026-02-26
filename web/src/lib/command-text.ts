@@ -17,7 +17,8 @@ export type LineType =
   | "link"
   | "header"
   | "divider"
-  | "progress";
+  | "progress"
+  | "live";
 
 export type ContentItem =
   | string
@@ -42,6 +43,7 @@ export const COMMAND_TEXTS = {
       "gate     — 접속 게이트 좌표 및 일정 (일시/장소)",
       "whois    — 시스템 아카이브 검색 (예: whois stann)",
       "transmit  — 시스템 통신망(방명록) 조회 및 전송",
+      "live     — 이벤트 실시간 채팅 채널 접속",
       "link     — 외부 데이터 네트워크 연결",
       "status   — 현재 세션 가동 로그",
       "settings — 시스템 언어 및 로컬 환경 설정",
@@ -56,6 +58,7 @@ export const COMMAND_TEXTS = {
       "gate     — Date & Venue",
       "whois    — System archive search (ex. whois stann)",
       "transmit  — View and transmit messages",
+      "live     — Live event channel",
       "link     — External directories",
       "status   — System operation logs",
       "settings — Language & environment settings",
@@ -71,7 +74,7 @@ export const COMMAND_TEXTS = {
       ["[ 시스템 코어 ]", "system"],
       "about, help, commands, status, settings, systems, voyage, clear",
       ["[ 데이터 아카이브 ]", "system"],
-      "lineup, gate, event, link, whoami, whois, transmit",
+      "lineup, gate, event, link, whoami, whois, transmit, live, name",
       ["[ 유틸리티 & 보안 ]", "system"],
       "date, time, echo, history, sudo",
       ["[ 시스템 진단 ]", "system"],
@@ -83,7 +86,7 @@ export const COMMAND_TEXTS = {
       ["[ SYSTEM CORE ]", "system"],
       "about, help, commands, status, settings, systems, voyage, clear",
       ["[ DATA ARCHIVE ]", "system"],
-      "lineup, gate, event, link, whoami, whois, transmit",
+      "lineup, gate, event, link, whoami, whois, transmit, live, name",
       ["[ UTILITIES & SECURITY ]", "system"],
       "date, time, echo, history, sudo",
       ["[ DIAGNOSTICS ]", "system"],
@@ -201,13 +204,14 @@ export const COMMAND_TEXTS = {
     ],
   } as I18nContentItem,
 
-  systems: {
+  systems: (isAdmin: boolean): I18nContentItem => ({
     ko: [
       ["시스템 하드웨어 진단", "header"],
       ["코어 연산:           [ 온라인 / 안정적 ]", "success"],
       "대상 라우팅:         [ 경로 탐색 중 -> FAUST_SEOUL ]",
       ["오디오 엔진:         [ 138.00 BPM으로 고정됨 ]", "success"],
       ["음향 어레이:         [ 정상 가동 (NOMINAL) ]", "success"],
+      ...(isAdmin ? [["관리자 세션:         [ 오버라이드 활성화 ]", "success"] as ContentItem] : []),
       "",
     ],
     en: [
@@ -216,16 +220,17 @@ export const COMMAND_TEXTS = {
       "Routing:         [CALCULATING -> FAUST_SEOUL]",
       ["Audio Engine:    [LOCKED ON 138.00 BPM]", "success"],
       ["Acoustic Array:  [NOMINAL]", "success"],
+      ...(isAdmin ? [["Admin Session:   [OVERRIDE ACTIVE]", "success"] as ContentItem] : []),
       "",
     ],
-  } as I18nContentItem,
+  }),
 
   gate: {
     ko: [
       ["접속 게이트 좌표 [01]", "header"],
       ["TERMINAL [01] : BOOT SEQUENCE", "system"],
       ["", "divider"],
-      "일  시 : 26-03-07 (토)",
+      "일  시 : 26-03-07 (토) 23:00 KST",
       "장  소 : Faust, Seoul",
       ["", "divider"],
       "* 시스템 동기화 및 메인 오디오 세션에 접속하십시오.",
@@ -235,7 +240,7 @@ export const COMMAND_TEXTS = {
       ["TARGET COORDINATES [01]", "header"],
       ["TERMINAL [01] : BOOT SEQUENCE", "system"],
       ["", "divider"],
-      "DATE  : 26-03-07 (SAT)",
+      "DATE  : 26-03-07 (SAT) 23:00 KST",
       "VENUE : Faust, Seoul",
       ["", "divider"],
       "* Synchronize system and connect to the main audio session.",
@@ -254,7 +259,7 @@ export const COMMAND_TEXTS = {
       ["  NUSNOOM", "success"],
       " ",
       "[ INFO ]",
-      "  DATE  : 26-03-07 (토)",
+      "  DATE  : 26-03-07 (토) 23:00 KST",
       "  VENUE : Faust, Seoul",
       " ",
       "[ ENGINE ]",
@@ -273,7 +278,7 @@ export const COMMAND_TEXTS = {
       ["  NUSNOOM", "success"],
       " ",
       "[ INFO ]",
-      "  DATE  : 26-03-07 (SAT)",
+      "  DATE  : 26-03-07 (SAT) 23:00 KST",
       "  VENUE : Faust, Seoul",
       " ",
       "[ ENGINE ]",
@@ -373,6 +378,23 @@ export const COMMAND_TEXTS = {
     ],
   } as I18nContentItem,
 
+  historyAdmin: {
+    ko: [
+      ["[ 시스템 로그 — 관리자 접근 허용됨 ]", "header"],
+      ["ADMIN CLEARANCE: 세션 기록 열람 권한이 확인되었습니다.", "success"],
+      ["보안 수준 LEVEL 5 — 접근 허가.", "success"],
+      ["세션 기록은 클라이언트 메모리에만 저장됩니다. 브라우저를 닫으면 소멸합니다.", "system"],
+      "",
+    ],
+    en: [
+      ["[ SYSTEM LOG — ADMIN ACCESS GRANTED ]", "header"],
+      ["ADMIN CLEARANCE: Session log access confirmed.", "success"],
+      ["SECURITY LEVEL 5 — ACCESS PERMITTED.", "success"],
+      ["Session history is stored in client memory only. Cleared on browser close.", "system"],
+      "",
+    ],
+  } as I18nContentItem,
+
   // ----------------------------------------------------------------------
   // 동적 데이터 주입을 위한 함수형 텍스트 블록
   // ----------------------------------------------------------------------
@@ -445,27 +467,43 @@ export const COMMAND_TEXTS = {
     ],
   }),
 
-  whoami: (nodeId: string): I18nContentItem => ({
+  whoami: (nodeId: string, name?: string, isAdmin?: boolean): I18nContentItem => ({
     ko: [
       ["접속 세션 식별 정보", "header"],
       `고유 ID : ${nodeId}`,
+      ...(name ? [`이 름   : ${name}`] : []) as ContentItem[],
       [
         "[INFO] 해당 세션은 TERMINAL [01] 메인 시스템에 접속되었습니다.",
         "system",
       ],
-      "역 할   : 관측자 (Observer) / 서브 노드",
-      ["권 한   : LEVEL 1 (코어 시스템 잠김)", "error"],
+      ...(isAdmin
+        ? [
+            ["역 할   : 마스터 노드 (Master Node) / 관리자", "success"] as ContentItem,
+            ["권 한   : LEVEL 5 (관리자 접근 허용됨)", "success"] as ContentItem,
+          ]
+        : [
+            "역 할   : 관측자 (Observer) / 서브 노드" as ContentItem,
+            ["권 한   : LEVEL 1 (코어 시스템 잠김)", "error"] as ContentItem,
+          ]),
       "",
     ],
     en: [
       ["SESSION IDENTIFICATION", "header"],
       `NODE ID : ${nodeId}`,
+      ...(name ? [`NAME    : ${name}`] : []) as ContentItem[],
       [
         "[INFO] This session is connected to TERMINAL [01] main system.",
         "system",
       ],
-      "ROLE    : Observer / Node",
-      ["ACCESS  : LEVEL 1 (CORE SYSTEM LOCKED)", "error"],
+      ...(isAdmin
+        ? [
+            ["ROLE    : Master Node / Admin", "success"] as ContentItem,
+            ["ACCESS  : LEVEL 5 (ADMIN ACCESS GRANTED)", "success"] as ContentItem,
+          ]
+        : [
+            "ROLE    : Observer / Node" as ContentItem,
+            ["ACCESS  : LEVEL 1 (CORE SYSTEM LOCKED)", "error"] as ContentItem,
+          ]),
       "",
     ],
   }),
@@ -749,7 +787,7 @@ export const COMMAND_TEXTS = {
         type: "output",
       },
       { text: "[ -- ] 동기화 게이트 좌표 확인...", type: "system" },
-      { text: "[ OK ] 게이트: Faust, Seoul / 26-03-07", type: "output" },
+      { text: "[ OK ] 게이트: Faust, Seoul / 26-03-07 23:00 KST", type: "output" },
       { text: "...", type: "system" },
       { text: "", type: "divider" },
       { text: "시스템 상태: 정상 가동 (OPERATIONAL)", type: "success" },
@@ -772,7 +810,7 @@ export const COMMAND_TEXTS = {
         type: "output",
       },
       { text: "[ -- ] Verifying gate coordinates...", type: "system" },
-      { text: "[ OK ] Gate: Faust, Seoul / 26-03-07", type: "output" },
+      { text: "[ OK ] Gate: Faust, Seoul / 26-03-07 23:00 KST", type: "output" },
       { text: "...", type: "system" },
       { text: "", type: "divider" },
       { text: "STATUS: OPERATIONAL", type: "success" },
@@ -780,6 +818,23 @@ export const COMMAND_TEXTS = {
         text: "All systems ready. Transferring terminal control.",
         type: "success",
       },
+      { text: "", type: "divider" },
+    ],
+  } as I18nBootLine,
+
+  wakeSequence: {
+    ko: [
+      { text: "[ -- ] 슬립 모드 해제 중...", type: "system" },
+      { text: "[ OK ] 세션 상태 복원됨.", type: "output" },
+      { text: "[ OK ] 게이트: Faust, Seoul / 26-03-07 23:00 KST", type: "output" },
+      { text: "[ OK ] 시스템 재개.", type: "success" },
+      { text: "", type: "divider" },
+    ],
+    en: [
+      { text: "[ -- ] Waking from sleep...", type: "system" },
+      { text: "[ OK ] Session state restored.", type: "output" },
+      { text: "[ OK ] Gate: Faust, Seoul / 26-03-07 23:00 KST", type: "output" },
+      { text: "[ OK ] System resumed.", type: "success" },
       { text: "", type: "divider" },
     ],
   } as I18nBootLine,
@@ -794,4 +849,296 @@ export const COMMAND_TEXTS = {
       ["", "divider"],
     ],
   } as I18nContentItem,
+
+  resumeMessage: {
+    ko: [
+      ["TERMINAL CORE SYSTEM — 세션이 재개되었습니다", "success"],
+      ["'help' 를 입력하면 사용 가능한 커맨드를 확인할 수 있습니다.", "system"],
+      ["", "divider"],
+    ],
+    en: [
+      ["TERMINAL CORE SYSTEM — SESSION RESUMED", "success"],
+      ["Type 'help' to see available commands.", "system"],
+      ["", "divider"],
+    ],
+  } as I18nContentItem,
+
+  // ----------------------------------------------------------------------
+  // name — 전역 닉네임 설정
+  // ----------------------------------------------------------------------
+
+  nameSet: (name: string): I18nContentItem => ({
+    ko: [["이름이 설정되었습니다 : " + name, "success"], ""],
+    en: [["Name set: " + name, "success"], ""],
+  }),
+
+  nameCurrent: (name: string): I18nContentItem => ({
+    ko: [
+      ["현재 이름 설정", "header"],
+      `이 름 : ${name}`,
+      ["변경하려면 'name <새 이름>'을 입력하세요.", "system"],
+      ["제거하려면 'name clear'를 입력하세요.", "system"],
+      "",
+    ],
+    en: [
+      ["CURRENT NAME", "header"],
+      `NAME : ${name}`,
+      ["To change, type 'name <new name>'.", "system"],
+      ["To remove, type 'name clear'.", "system"],
+      "",
+    ],
+  }),
+
+  nameCleared: (nodeId: string): I18nContentItem => ({
+    ko: [["이름이 제거되었습니다. 기본 ID로 복원: " + nodeId, "system"], ""],
+    en: [["Name removed. Reverted to node ID: " + nodeId, "system"], ""],
+  }),
+
+  nameEmpty: {
+    ko: [
+      ["이름이 설정되지 않았습니다.", "system"],
+      ["설정하려면 'name <이름>'을 입력하세요.", "system"],
+      "",
+    ],
+    en: [
+      ["No name configured.", "system"],
+      ["Type 'name <your name>' to set one.", "system"],
+      "",
+    ],
+  } as I18nContentItem,
+
+  nameInvalid: {
+    ko: [["[ ERROR ] 이름은 1~20자 이내로 입력하세요.", "error"], ""],
+    en: [["[ ERROR ] Name must be between 1 and 20 characters.", "error"], ""],
+  } as I18nContentItem,
+
+  // ----------------------------------------------------------------------
+  // live — 실시간 채팅 모드
+  // ----------------------------------------------------------------------
+
+  liveHeader: (sessionName: string): I18nContentItem => ({
+    ko: [
+      ["══════════════════════════════", "system"],
+      [`  TERMINAL LIVE — ${sessionName}`, "header"],
+      ["  이벤트 실시간 채널이 열렸습니다.", "success"],
+      ["  '/leave' 로 세션을 종료합니다.", "system"],
+      ["══════════════════════════════", "system"],
+      "",
+    ],
+    en: [
+      ["══════════════════════════════", "system"],
+      [`  TERMINAL LIVE — ${sessionName}`, "header"],
+      ["  Live event channel is now open.", "success"],
+      ["  Type '/leave' to end the session.", "system"],
+      ["══════════════════════════════", "system"],
+      "",
+    ],
+  }),
+
+  liveOffline: (upcoming: Array<{ name: string; starts_at: string; ends_at: string | null }>): I18nContentItem => {
+    const fmtKst = (iso: string) => {
+      const f = new Intl.DateTimeFormat("en-US", {
+        timeZone: "Asia/Seoul", month: "2-digit", day: "2-digit",
+        hour: "2-digit", minute: "2-digit", hour12: false,
+      }).formatToParts(new Date(iso));
+      const g = (t: string) => f.find((p) => p.type === t)?.value ?? "00";
+      return `${g("month")}-${g("day")} ${g("hour")}:${g("minute")} KST`;
+    };
+    const fmtRow = (s: typeof upcoming[0]) => {
+      const start = fmtKst(s.starts_at);
+      const end = s.ends_at ? ` ~ ${fmtKst(s.ends_at)}` : "";
+      return `  ${start}${end}  ${s.name}` as ContentItem;
+    };
+    const upcomingKo: ContentItem[] = upcoming.length > 0
+      ? [["[ 예정 세션 ]", "system" as LineType], ...upcoming.map(fmtRow)]
+      : [];
+    const upcomingEn: ContentItem[] = upcoming.length > 0
+      ? [["[ UPCOMING SESSIONS ]", "system" as LineType], ...upcoming.map(fmtRow)]
+      : [];
+    return {
+      ko: [["[ CHANNEL OFFLINE ]", "header"], "현재 활성화된 라이브 세션이 없습니다.", ...upcomingKo, ""],
+      en: [["[ CHANNEL OFFLINE ]", "header"], "No active live session at this time.", ...upcomingEn, ""],
+    };
+  },
+
+  liveNoName: (nodeId: string): I18nContentItem => ({
+    ko: [
+      ["[ 이름 미설정 ]", "header"],
+      "라이브 채널 참가 방법을 선택하세요.",
+      ["", "divider"],
+      [`  live --node   →  ${nodeId} 로 바로 접속`, "system"],
+      ["  name <이름>   →  이름 설정 후 live 재접속", "system"],
+      "",
+    ],
+    en: [
+      ["[ NAME NOT CONFIGURED ]", "header"],
+      "Choose how to join the live channel.",
+      ["", "divider"],
+      [`  live --node   →  Enter as ${nodeId}`, "system"],
+      ["  name <name>   →  Set a name, then rejoin with live", "system"],
+      "",
+    ],
+  }),
+
+  liveExit: {
+    ko: [
+      ["", "divider"],
+      ["[ LIVE CHANNEL DISCONNECTED ]", "system"],
+      "",
+    ],
+    en: [
+      ["", "divider"],
+      ["[ LIVE CHANNEL DISCONNECTED ]", "system"],
+      "",
+    ],
+  } as I18nContentItem,
+
+  liveTooFast: {
+    ko: [["[ SYS ] 너무 빠릅니다. 잠시 후 다시 시도하세요.", "system"], ""],
+    en: [["[ SYS ] Too fast. Please wait a moment.", "system"], ""],
+  } as I18nContentItem,
+
+  liveError: {
+    ko: [["[ ERROR ] 메시지 전송에 실패했습니다.", "error"], ""],
+    en: [["[ ERROR ] Failed to send message.", "error"], ""],
+  } as I18nContentItem,
+
+  // ----------------------------------------------------------------------
+  // admin — 관리자 명령어 (숨김)
+  // ----------------------------------------------------------------------
+
+  adminDenied: {
+    ko: [
+      ["[ 보안 프로토콜 — 접근 거부 ]", "header"],
+      ["경고: 인가되지 않은 접근 시도가 감지되었습니다.", "error"],
+      "이 구역은 LEVEL 5 인가 노드 전용입니다.",
+      ["해당 행동이 시스템 로그에 기록되었습니다.", "system"],
+      "",
+    ],
+    en: [
+      ["[ SECURITY PROTOCOL — ACCESS DENIED ]", "header"],
+      ["WARNING: Unauthorized access attempt detected.", "error"],
+      "This sector is restricted to LEVEL 5 authorized nodes only.",
+      ["Action has been logged to the system.", "system"],
+      "",
+    ],
+  } as I18nContentItem,
+
+  adminHelp: {
+    ko: [
+      ["[ ADMIN ] 관리자 커맨드 인덱스", "header"],
+      ["admin live open <이름>              — 즉시 개방 세션 생성", "success"],
+      "admin live add <이름> <시작> <종료>  — 예약 세션 등록 (시간: 26-03-07T22:00)",
+      "admin live close                    — 현재 활성 세션 종료",
+      "admin live close <이름>             — 특정 세션 즉시 종료",
+      "admin live delete <이름>            — 예약 세션 삭제",
+      "admin live status                   — 세션 목록 및 상태",
+      "admin live clear                    — 활성 세션 메시지 삭제",
+      "admin ann <메시지>                  — 전체 공지 브로드캐스트",
+      "admin ann clear                     — 공지 해제",
+      "",
+    ],
+    en: [
+      ["[ ADMIN ] ADMIN COMMAND INDEX", "header"],
+      ["admin live open <name>              — Create immediate session", "success"],
+      "admin live add <name> <start> <end>  — Schedule session (26-03-07T22:00)",
+      "admin live close                     — Close current active session",
+      "admin live close <name>              — Close specific session",
+      "admin live delete <name>             — Delete scheduled session",
+      "admin live status                    — List sessions & status",
+      "admin live clear                     — Clear active session messages",
+      "admin ann <message>                  — Broadcast announcement",
+      "admin ann clear                      — Clear announcement",
+      "",
+    ],
+  } as I18nContentItem,
+
+  adminUnlocked: {
+    ko: [["[ ADMIN ] 인증 완료. 관리자 모드 활성화.", "success"], ""],
+    en: [["[ ADMIN ] Authenticated. Admin mode active.", "success"], ""],
+  } as I18nContentItem,
+
+  adminLiveOpened: {
+    ko: [["[ ADMIN ] 즉시 개방 세션을 생성했습니다.", "success"], ""],
+    en: [["[ ADMIN ] Immediate session created.", "success"], ""],
+  } as I18nContentItem,
+
+  adminLiveScheduled: {
+    ko: [["[ ADMIN ] 예약 세션이 등록되었습니다.", "success"], ""],
+    en: [["[ ADMIN ] Scheduled session registered.", "success"], ""],
+  } as I18nContentItem,
+
+  adminLiveClosed: {
+    ko: [["[ ADMIN ] 세션을 종료했습니다.", "system"], ""],
+    en: [["[ ADMIN ] Session closed.", "system"], ""],
+  } as I18nContentItem,
+
+  adminLiveNotFound: {
+    ko: [["[ ADMIN ] 해당 이름의 세션을 찾을 수 없습니다.", "error"], ""],
+    en: [["[ ADMIN ] No session found with that name.", "error"], ""],
+  } as I18nContentItem,
+
+  adminLiveDeleted: {
+    ko: [["[ ADMIN ] 세션이 삭제되었습니다.", "system"], ""],
+    en: [["[ ADMIN ] Session deleted.", "system"], ""],
+  } as I18nContentItem,
+
+  adminLiveCleared: {
+    ko: [["[ ADMIN ] 세션 메시지가 삭제되었습니다.", "success"], ""],
+    en: [["[ ADMIN ] Session messages cleared.", "success"], ""],
+  } as I18nContentItem,
+
+  adminSessionStatus: (sessions: Array<{
+    id: string; name: string; is_force_open: boolean;
+    starts_at: string; ends_at: string | null; closed_at: string | null;
+  }>): I18nContentItem => {
+    const now = new Date();
+    const fmtKst = (iso: string | null) => {
+      if (!iso) return "—";
+      const f = new Intl.DateTimeFormat("en-US", {
+        timeZone: "Asia/Seoul", month: "2-digit", day: "2-digit",
+        hour: "2-digit", minute: "2-digit", hour12: false,
+      }).formatToParts(new Date(iso));
+      const g = (t: string) => f.find((p) => p.type === t)?.value ?? "00";
+      return `${g("month")}-${g("day")} ${g("hour")}:${g("minute")}`;
+    };
+    const getStatus = (s: typeof sessions[0]) => {
+      if (s.closed_at) return "CLOSED";
+      if (s.is_force_open) return "ACTIVE";
+      if (new Date(s.starts_at) > now) return "UPCOMING";
+      if (!s.ends_at || new Date(s.ends_at) > now) return "ACTIVE";
+      return "ENDED";
+    };
+    const rows = sessions.map(s => {
+      const status = getStatus(s);
+      const type = s.is_force_open ? "FORCE" : "SCHED";
+      const start = fmtKst(s.starts_at);
+      const end = fmtKst(s.ends_at);
+      return [`  ${status.padEnd(8)} ${type}  ${s.name.padEnd(16)} ${start} ~ ${end}`, status === "ACTIVE" ? "success" : "system"] as [string, LineType];
+    });
+    return {
+      ko: [["[ ADMIN ] 세션 목록", "header"], ...rows, ""],
+      en: [["[ ADMIN ] SESSION LIST", "header"], ...rows, ""],
+    };
+  },
+
+  adminError: {
+    ko: [["[ ADMIN ] 오류가 발생했습니다.", "error"], ""],
+    en: [["[ ADMIN ] An error occurred.", "error"], ""],
+  } as I18nContentItem,
+
+  adminAnnSent: {
+    ko: [["[ OK ] 공지가 전송되었습니다.", "success"], ""],
+    en: [["[ OK ] Announcement broadcast.", "success"], ""],
+  } as I18nContentItem,
+
+  adminAnnCleared: {
+    ko: [["[ OK ] 공지가 해제되었습니다.", "success"], ""],
+    en: [["[ OK ] Announcement cleared.", "success"], ""],
+  } as I18nContentItem,
+
+  announcementBanner: (msg: string): I18nContentItem => ({
+    ko: [["[ 공지사항 ]  " + msg, "error"], ["", "divider"]],
+    en: [["[ NOTICE ]  " + msg, "error"], ["", "divider"]],
+  }),
 };
