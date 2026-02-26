@@ -17,16 +17,24 @@ const orbit = Orbit({
 
 export const metadata: Metadata = {
   title: "TERMINAL",
-  description: "THE UNIVERSAL JOURNEY OF STANN LUMO.",
+  description: "A Voyage to the Unknown Sector.",
   openGraph: {
     title: "TERMINAL",
-    description: "THE UNIVERSAL JOURNEY OF STANN LUMO.",
+    description: "A Voyage to the Unknown Sector.",
     type: "website",
+  },
+  icons: {
+    icon: [
+      { url: "/favicon/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: "/favicon/apple-touch-icon.png",
   },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
   },
+  manifest: "/manifest.json",
 };
 
 export const viewport: Viewport = {
@@ -45,7 +53,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${jetbrainsMono.variable} ${orbit.variable}`} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${jetbrainsMono.variable} ${orbit.variable}`}
+      suppressHydrationWarning
+    >
       <body className="antialiased overflow-hidden" suppressHydrationWarning>
         {/* React hydration 전에 localStorage에서 테마/언어를 즉시 적용하여 FOUC 방지 */}
         <script
