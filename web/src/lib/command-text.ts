@@ -211,7 +211,14 @@ export const COMMAND_TEXTS = {
       "대상 라우팅:         [ 경로 탐색 중 -> FAUST_SEOUL ]",
       ["오디오 엔진:         [ 138.00 BPM으로 고정됨 ]", "success"],
       ["음향 어레이:         [ 정상 가동 (NOMINAL) ]", "success"],
-      ...(isAdmin ? [["관리자 세션:         [ 오버라이드 활성화 ]", "success"] as ContentItem] : []),
+      ...(isAdmin
+        ? [
+            [
+              "관리자 세션:         [ 오버라이드 활성화 ]",
+              "success",
+            ] as ContentItem,
+          ]
+        : []),
       "",
     ],
     en: [
@@ -220,7 +227,9 @@ export const COMMAND_TEXTS = {
       "Routing:         [CALCULATING -> FAUST_SEOUL]",
       ["Audio Engine:    [LOCKED ON 138.00 BPM]", "success"],
       ["Acoustic Array:  [NOMINAL]", "success"],
-      ...(isAdmin ? [["Admin Session:   [OVERRIDE ACTIVE]", "success"] as ContentItem] : []),
+      ...(isAdmin
+        ? [["Admin Session:   [OVERRIDE ACTIVE]", "success"] as ContentItem]
+        : []),
       "",
     ],
   }),
@@ -284,7 +293,10 @@ export const COMMAND_TEXTS = {
       "[ ENGINE ]",
       ["  Hypnotic & Futuristic Techno", "success"],
       ["", "divider"],
-      ["* Complete system synchronization and prepare for departure.", "system"],
+      [
+        "* Complete system synchronization and prepare for departure.",
+        "system",
+      ],
       "",
     ],
   } as I18nContentItem,
@@ -383,14 +395,20 @@ export const COMMAND_TEXTS = {
       ["[ 시스템 로그 — 관리자 접근 허용됨 ]", "header"],
       ["ADMIN CLEARANCE: 세션 기록 열람 권한이 확인되었습니다.", "success"],
       ["보안 수준 LEVEL 5 — 접근 허가.", "success"],
-      ["세션 기록은 클라이언트 메모리에만 저장됩니다. 브라우저를 닫으면 소멸합니다.", "system"],
+      [
+        "세션 기록은 클라이언트 메모리에만 저장됩니다. 브라우저를 닫으면 소멸합니다.",
+        "system",
+      ],
       "",
     ],
     en: [
       ["[ SYSTEM LOG — ADMIN ACCESS GRANTED ]", "header"],
       ["ADMIN CLEARANCE: Session log access confirmed.", "success"],
       ["SECURITY LEVEL 5 — ACCESS PERMITTED.", "success"],
-      ["Session history is stored in client memory only. Cleared on browser close.", "system"],
+      [
+        "Session history is stored in client memory only. Cleared on browser close.",
+        "system",
+      ],
       "",
     ],
   } as I18nContentItem,
@@ -467,19 +485,29 @@ export const COMMAND_TEXTS = {
     ],
   }),
 
-  whoami: (nodeId: string, name?: string, isAdmin?: boolean): I18nContentItem => ({
+  whoami: (
+    nodeId: string,
+    name?: string,
+    isAdmin?: boolean,
+  ): I18nContentItem => ({
     ko: [
       ["접속 세션 식별 정보", "header"],
       `고유 ID : ${nodeId}`,
-      ...(name ? [`이 름   : ${name}`] : []) as ContentItem[],
+      ...((name ? [`이 름   : ${name}`] : []) as ContentItem[]),
       [
         "[INFO] 해당 세션은 TERMINAL [01] 메인 시스템에 접속되었습니다.",
         "system",
       ],
       ...(isAdmin
         ? [
-            ["역 할   : 마스터 노드 (Master Node) / 관리자", "success"] as ContentItem,
-            ["권 한   : LEVEL 5 (관리자 접근 허용됨)", "success"] as ContentItem,
+            [
+              "역 할   : 마스터 노드 (Master Node) / 관리자",
+              "success",
+            ] as ContentItem,
+            [
+              "권 한   : LEVEL 5 (관리자 접근 허용됨)",
+              "success",
+            ] as ContentItem,
           ]
         : [
             "역 할   : 관측자 (Observer) / 서브 노드" as ContentItem,
@@ -490,7 +518,7 @@ export const COMMAND_TEXTS = {
     en: [
       ["SESSION IDENTIFICATION", "header"],
       `NODE ID : ${nodeId}`,
-      ...(name ? [`NAME    : ${name}`] : []) as ContentItem[],
+      ...((name ? [`NAME    : ${name}`] : []) as ContentItem[]),
       [
         "[INFO] This session is connected to TERMINAL [01] main system.",
         "system",
@@ -498,7 +526,10 @@ export const COMMAND_TEXTS = {
       ...(isAdmin
         ? [
             ["ROLE    : Master Node / Admin", "success"] as ContentItem,
-            ["ACCESS  : LEVEL 5 (ADMIN ACCESS GRANTED)", "success"] as ContentItem,
+            [
+              "ACCESS  : LEVEL 5 (ADMIN ACCESS GRANTED)",
+              "success",
+            ] as ContentItem,
           ]
         : [
             "ROLE    : Observer / Node" as ContentItem,
@@ -733,7 +764,12 @@ export const COMMAND_TEXTS = {
       error: [["[ ERROR ] 전송 실패.", "error"]],
       header: (page: number): ContentItem[] => [
         ["TRANSMISSION RECEPTION LOG", "header"],
-        [page === 1 ? "[ 최근 10건 표시 ]" : `[ ${(page - 1) * 10 + 1}~${page * 10}번째 메시지 ]`, "system"],
+        [
+          page === 1
+            ? "[ 최근 10건 표시 ]"
+            : `[ ${(page - 1) * 10 + 1}~${page * 10}번째 메시지 ]`,
+          "system",
+        ],
         "",
       ],
     },
@@ -763,7 +799,12 @@ export const COMMAND_TEXTS = {
       error: [["[ ERROR ] Transmission failed.", "error"]],
       header: (page: number): ContentItem[] => [
         ["TRANSMISSION RECEPTION LOG", "header"],
-        [page === 1 ? "[ SHOWING LAST 10 ENTRIES ]" : `[ ENTRIES ${(page - 1) * 10 + 1}–${page * 10} ]`, "system"],
+        [
+          page === 1
+            ? "[ SHOWING LAST 10 ENTRIES ]"
+            : `[ ENTRIES ${(page - 1) * 10 + 1}–${page * 10} ]`,
+          "system",
+        ],
         "",
       ],
     },
@@ -787,7 +828,10 @@ export const COMMAND_TEXTS = {
         type: "output",
       },
       { text: "[ -- ] 동기화 게이트 좌표 확인...", type: "system" },
-      { text: "[ OK ] 게이트: Faust, Seoul / 26-03-07 23:00 KST", type: "output" },
+      {
+        text: "[ OK ] 게이트: Faust, Seoul / 26-03-07 23:00 KST",
+        type: "output",
+      },
       { text: "...", type: "system" },
       { text: "", type: "divider" },
       { text: "시스템 상태: 정상 가동 (OPERATIONAL)", type: "success" },
@@ -810,7 +854,10 @@ export const COMMAND_TEXTS = {
         type: "output",
       },
       { text: "[ -- ] Verifying gate coordinates...", type: "system" },
-      { text: "[ OK ] Gate: Faust, Seoul / 26-03-07 23:00 KST", type: "output" },
+      {
+        text: "[ OK ] Gate: Faust, Seoul / 26-03-07 23:00 KST",
+        type: "output",
+      },
       { text: "...", type: "system" },
       { text: "", type: "divider" },
       { text: "STATUS: OPERATIONAL", type: "success" },
@@ -826,14 +873,20 @@ export const COMMAND_TEXTS = {
     ko: [
       { text: "[ -- ] 슬립 모드 해제 중...", type: "system" },
       { text: "[ OK ] 세션 상태 복원됨.", type: "output" },
-      { text: "[ OK ] 게이트: Faust, Seoul / 26-03-07 23:00 KST", type: "output" },
+      {
+        text: "[ OK ] 게이트: Faust, Seoul / 26-03-07 23:00 KST",
+        type: "output",
+      },
       { text: "[ OK ] 시스템 재개.", type: "success" },
       { text: "", type: "divider" },
     ],
     en: [
       { text: "[ -- ] Waking from sleep...", type: "system" },
       { text: "[ OK ] Session state restored.", type: "output" },
-      { text: "[ OK ] Gate: Faust, Seoul / 26-03-07 23:00 KST", type: "output" },
+      {
+        text: "[ OK ] Gate: Faust, Seoul / 26-03-07 23:00 KST",
+        type: "output",
+      },
       { text: "[ OK ] System resumed.", type: "success" },
       { text: "", type: "divider" },
     ],
@@ -935,29 +988,54 @@ export const COMMAND_TEXTS = {
     ],
   }),
 
-  liveOffline: (upcoming: Array<{ name: string; starts_at: string; ends_at: string | null }>): I18nContentItem => {
+  liveOffline: (
+    upcoming: Array<{
+      name: string;
+      starts_at: string;
+      ends_at: string | null;
+    }>,
+  ): I18nContentItem => {
     const fmtKst = (iso: string) => {
       const f = new Intl.DateTimeFormat("en-US", {
-        timeZone: "Asia/Seoul", month: "2-digit", day: "2-digit",
-        hour: "2-digit", minute: "2-digit", hour12: false,
+        timeZone: "Asia/Seoul",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
       }).formatToParts(new Date(iso));
       const g = (t: string) => f.find((p) => p.type === t)?.value ?? "00";
       return `${g("month")}-${g("day")} ${g("hour")}:${g("minute")} KST`;
     };
-    const fmtRow = (s: typeof upcoming[0]) => {
+    const fmtRow = (s: (typeof upcoming)[0]) => {
       const start = fmtKst(s.starts_at);
       const end = s.ends_at ? ` ~ ${fmtKst(s.ends_at)}` : "";
       return `  ${start}${end}  ${s.name}` as ContentItem;
     };
-    const upcomingKo: ContentItem[] = upcoming.length > 0
-      ? [["[ 예정 세션 ]", "system" as LineType], ...upcoming.map(fmtRow)]
-      : [];
-    const upcomingEn: ContentItem[] = upcoming.length > 0
-      ? [["[ UPCOMING SESSIONS ]", "system" as LineType], ...upcoming.map(fmtRow)]
-      : [];
+    const upcomingKo: ContentItem[] =
+      upcoming.length > 0
+        ? [["[ 예정 세션 ]", "system" as LineType], ...upcoming.map(fmtRow)]
+        : [];
+    const upcomingEn: ContentItem[] =
+      upcoming.length > 0
+        ? [
+            ["[ UPCOMING SESSIONS ]", "system" as LineType],
+            ...upcoming.map(fmtRow),
+          ]
+        : [];
     return {
-      ko: [["[ CHANNEL OFFLINE ]", "header"], "현재 활성화된 라이브 세션이 없습니다.", ...upcomingKo, ""],
-      en: [["[ CHANNEL OFFLINE ]", "header"], "No active live session at this time.", ...upcomingEn, ""],
+      ko: [
+        ["[ CHANNEL OFFLINE ]", "header"],
+        "현재 활성화된 라이브 세션이 없습니다.",
+        ...upcomingKo,
+        "",
+      ],
+      en: [
+        ["[ CHANNEL OFFLINE ]", "header"],
+        "No active live session at this time.",
+        ...upcomingEn,
+        "",
+      ],
     };
   },
 
@@ -981,16 +1059,8 @@ export const COMMAND_TEXTS = {
   }),
 
   liveExit: {
-    ko: [
-      ["", "divider"],
-      ["[ LIVE CHANNEL DISCONNECTED ]", "system"],
-      "",
-    ],
-    en: [
-      ["", "divider"],
-      ["[ LIVE CHANNEL DISCONNECTED ]", "system"],
-      "",
-    ],
+    ko: [["", "divider"], ["[ LIVE CHANNEL DISCONNECTED ]", "system"], ""],
+    en: [["", "divider"], ["[ LIVE CHANNEL DISCONNECTED ]", "system"], ""],
   } as I18nContentItem,
 
   liveTooFast: {
@@ -1027,6 +1097,8 @@ export const COMMAND_TEXTS = {
   adminHelp: {
     ko: [
       ["[ ADMIN ] 관리자 커맨드 인덱스", "header"],
+      ["admin login <password>              — 관리자 세션 로그인", "success"],
+      ["admin logout                        — 관리자 세션 로그아웃", "system"],
       ["admin live open <이름>              — 즉시 개방 세션 생성", "success"],
       "admin live add <이름> <시작> <종료>  — 예약 세션 등록 (시간: 26-03-07T22:00)",
       "admin live close                    — 현재 활성 세션 종료",
@@ -1040,7 +1112,12 @@ export const COMMAND_TEXTS = {
     ],
     en: [
       ["[ ADMIN ] ADMIN COMMAND INDEX", "header"],
-      ["admin live open <name>              — Create immediate session", "success"],
+      ["admin login <password>              — Admin session login", "success"],
+      ["admin logout                       — Admin session logout", "system"],
+      [
+        "admin live open <name>              — Create immediate session",
+        "success",
+      ],
       "admin live add <name> <start> <end>  — Schedule session (26-03-07T22:00)",
       "admin live close                     — Close current active session",
       "admin live close <name>              — Close specific session",
@@ -1088,33 +1165,46 @@ export const COMMAND_TEXTS = {
     en: [["[ ADMIN ] Session messages cleared.", "success"], ""],
   } as I18nContentItem,
 
-  adminSessionStatus: (sessions: Array<{
-    id: string; name: string; is_force_open: boolean;
-    starts_at: string; ends_at: string | null; closed_at: string | null;
-  }>): I18nContentItem => {
+  adminSessionStatus: (
+    sessions: Array<{
+      id: string;
+      name: string;
+      is_force_open: boolean;
+      starts_at: string;
+      ends_at: string | null;
+      closed_at: string | null;
+    }>,
+  ): I18nContentItem => {
     const now = new Date();
     const fmtKst = (iso: string | null) => {
       if (!iso) return "—";
       const f = new Intl.DateTimeFormat("en-US", {
-        timeZone: "Asia/Seoul", month: "2-digit", day: "2-digit",
-        hour: "2-digit", minute: "2-digit", hour12: false,
+        timeZone: "Asia/Seoul",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
       }).formatToParts(new Date(iso));
       const g = (t: string) => f.find((p) => p.type === t)?.value ?? "00";
       return `${g("month")}-${g("day")} ${g("hour")}:${g("minute")}`;
     };
-    const getStatus = (s: typeof sessions[0]) => {
+    const getStatus = (s: (typeof sessions)[0]) => {
       if (s.closed_at) return "CLOSED";
       if (s.is_force_open) return "ACTIVE";
       if (new Date(s.starts_at) > now) return "UPCOMING";
       if (!s.ends_at || new Date(s.ends_at) > now) return "ACTIVE";
       return "ENDED";
     };
-    const rows = sessions.map(s => {
+    const rows = sessions.map((s) => {
       const status = getStatus(s);
       const type = s.is_force_open ? "FORCE" : "SCHED";
       const start = fmtKst(s.starts_at);
       const end = fmtKst(s.ends_at);
-      return [`  ${status.padEnd(8)} ${type}  ${s.name.padEnd(16)} ${start} ~ ${end}`, status === "ACTIVE" ? "success" : "system"] as [string, LineType];
+      return [
+        `  ${status.padEnd(8)} ${type}  ${s.name.padEnd(16)} ${start} ~ ${end}`,
+        status === "ACTIVE" ? "success" : "system",
+      ] as [string, LineType];
     });
     return {
       ko: [["[ ADMIN ] 세션 목록", "header"], ...rows, ""],
@@ -1125,6 +1215,18 @@ export const COMMAND_TEXTS = {
   adminError: {
     ko: [["[ ADMIN ] 오류가 발생했습니다.", "error"], ""],
     en: [["[ ADMIN ] An error occurred.", "error"], ""],
+  } as I18nContentItem,
+  adminLoginSuccess: {
+    ko: [["[ ADMIN ] 인증 성공. 세션이 활성화되었습니다.", "success"], ""],
+    en: [["[ ADMIN ] Login successful. Session activated.", "success"], ""],
+  } as I18nContentItem,
+  adminLoginFail: {
+    ko: [["[ ADMIN ] 인증 실패. 자격 증명을 확인하세요.", "error"], ""],
+    en: [["[ ADMIN ] Login failed. Check your credentials.", "error"], ""],
+  } as I18nContentItem,
+  adminLogoutSuccess: {
+    ko: [["[ ADMIN ] 로그아웃 완료. 세션이 종료되었습니다.", "system"], ""],
+    en: [["[ ADMIN ] Logout successful. Session terminated.", "system"], ""],
   } as I18nContentItem,
 
   adminAnnSent: {
@@ -1138,7 +1240,13 @@ export const COMMAND_TEXTS = {
   } as I18nContentItem,
 
   announcementBanner: (msg: string): I18nContentItem => ({
-    ko: [["[ 공지사항 ]  " + msg, "error"], ["", "divider"]],
-    en: [["[ NOTICE ]  " + msg, "error"], ["", "divider"]],
+    ko: [
+      ["[ 공지사항 ]  " + msg, "error"],
+      ["", "divider"],
+    ],
+    en: [
+      ["[ NOTICE ]  " + msg, "error"],
+      ["", "divider"],
+    ],
   }),
 };

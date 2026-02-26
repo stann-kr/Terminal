@@ -1016,22 +1016,41 @@ export default function TerminalShell() {
         { label: "login stann", cmd: "sudo login stann" },
       ];
     } else if (activeCtx === "name") {
-      // "name <이름>" 입력 중: 이름이 있으면 설정 버튼, 없으면 뒤로만 표시
+      // [Refinement] "name <이름>" 입력 중:
+      // 1. "clear" 입력 시 -> "이름 제거" 버튼
+      // 2. 이름 입력 시 -> "설정" 버튼
+      // 3. 빈 값일 때 -> "이름 제거" (저장된 이름 있을 시) 또는 뒤로만 표시
       const nameVal = input
         .trimStart()
         .replace(/^name\s*/i, "")
         .trim();
-      currentQuickCommands =
-        nameVal.length > 0
-          ? [
-              BACK_BTN,
-              {
-                label:
-                  language === "ko" ? `"${nameVal}" 설정` : `set "${nameVal}"`,
-                cmd: `name ${nameVal}`,
-              },
-            ]
+
+      const savedName =
+        typeof window !== "undefined"
+          ? localStorage.getItem("terminal_name")
+          : null;
+
+      const REMOVE_NAME_BTN: QuickCommand = {
+        label: language === "ko" ? "이름 제거" : "remove name",
+        cmd: "name clear",
+      };
+
+      if (nameVal.toLowerCase() === "clear") {
+        currentQuickCommands = [BACK_BTN, REMOVE_NAME_BTN];
+      } else if (nameVal.length > 0) {
+        currentQuickCommands = [
+          BACK_BTN,
+          {
+            label: language === "ko" ? `"${nameVal}" 설정` : `set "${nameVal}"`,
+            cmd: `name ${nameVal}`,
+          },
+        ];
+      } else {
+        // 입력이 없을 때: 저장된 이름이 있으면 제거 옵션 노출
+        currentQuickCommands = savedName
+          ? [BACK_BTN, REMOVE_NAME_BTN]
           : [BACK_BTN];
+      }
     } else if (activeCtx === "transmit") {
       // [Refinement] 현재 입력값이 transmit으로 시작하는 경우 동적 버튼 노출
       // 타이핑 애니메이션 중에는 버튼 목록을 고정하여 버벅임 방지

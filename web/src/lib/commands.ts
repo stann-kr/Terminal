@@ -6,11 +6,7 @@
  */
 
 import { COMMAND_TEXTS } from "./command-text";
-import type {
-  LineType,
-  LanguageType,
-  I18nContentItem,
-} from "./command-text";
+import type { LineType, LanguageType, I18nContentItem } from "./command-text";
 import { supabase } from "./supabase";
 
 export type { LineType, LanguageType } from "./command-text";
@@ -48,7 +44,10 @@ const hasBrackets = (str: string): boolean => /[<>]/.test(str);
 
 /** Intl.DateTimeFormat formatToParts 헬퍼 */
 const kstParts = (d: Date, opts: Intl.DateTimeFormatOptions) =>
-  new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Seoul", ...opts }).formatToParts(d);
+  new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Seoul",
+    ...opts,
+  }).formatToParts(d);
 const getPart = (parts: Intl.DateTimeFormatPart[], type: string) =>
   parts.find((p) => p.type === type)?.value ?? "00";
 
@@ -60,7 +59,14 @@ const fmtKstHm = (d: Date) => {
 
 /** KST 기준 yy-MM-dd HH:mm (transmit 목록) */
 const fmtKstFull = (d: Date) => {
-  const p = kstParts(d, { year: "2-digit", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false });
+  const p = kstParts(d, {
+    year: "2-digit",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
   return `${getPart(p, "year")}-${getPart(p, "month")}-${getPart(p, "day")} ${getPart(p, "hour")}:${getPart(p, "minute")}`;
 };
 
@@ -220,9 +226,7 @@ const COMMAND_MAP: Record<
     if (!target) {
       return [
         line(
-          lang === "ko"
-            ? "사용법 : whois <name>"
-            : "usage : whois <name>",
+          lang === "ko" ? "사용법 : whois <name>" : "usage : whois <name>",
           "error",
         ),
       ];
@@ -236,7 +240,10 @@ const COMMAND_MAP: Record<
     if (target === "nusnoom") {
       return [...notice, ...parseContent(COMMAND_TEXTS.whoisNusnoom(), lang)];
     }
-    return [...notice, ...parseContent(COMMAND_TEXTS.whoisUnknown(target), lang)];
+    return [
+      ...notice,
+      ...parseContent(COMMAND_TEXTS.whoisUnknown(target), lang),
+    ];
   },
 
   whoami: (_, lang) => {
@@ -256,7 +263,8 @@ const COMMAND_MAP: Record<
     if (!value) {
       if (typeof window !== "undefined") {
         const current = localStorage.getItem("terminal_name");
-        if (current) return parseContent(COMMAND_TEXTS.nameCurrent(current), lang);
+        if (current)
+          return parseContent(COMMAND_TEXTS.nameCurrent(current), lang);
       }
       return parseContent(COMMAND_TEXTS.nameEmpty, lang);
     }
@@ -293,8 +301,10 @@ const COMMAND_MAP: Record<
     return parseContent(COMMAND_TEXTS.echoOutput(args.join(" ")), lang);
   },
 
-  date: (_, lang) => parseContent(COMMAND_TEXTS.dateTime(getTimestamp(lang)), lang),
-  time: (_, lang) => parseContent(COMMAND_TEXTS.dateTime(getTimestamp(lang)), lang),
+  date: (_, lang) =>
+    parseContent(COMMAND_TEXTS.dateTime(getTimestamp(lang)), lang),
+  time: (_, lang) =>
+    parseContent(COMMAND_TEXTS.dateTime(getTimestamp(lang)), lang),
   ping: (_, lang) => parseContent(COMMAND_TEXTS.ping, lang),
   scan: (_, lang) => parseContent(COMMAND_TEXTS.weather, lang),
   weather: (_, lang) => parseContent(COMMAND_TEXTS.weather, lang),
@@ -409,7 +419,10 @@ const COMMAND_MAP: Record<
       }
 
       const listLines = data.map((entry: any) =>
-        line(`[${fmtKstFull(new Date(entry.created_at))}] ${entry.name}: ${entry.message}`, "output"),
+        line(
+          `[${fmtKstFull(new Date(entry.created_at))}] ${entry.name}: ${entry.message}`,
+          "output",
+        ),
       );
 
       return [
@@ -452,7 +465,11 @@ const COMMAND_MAP: Record<
 
     if (!activeSession) {
       // 예정 세션 조회해서 오프라인 메시지에 포함
-      let upcoming: Array<{ name: string; starts_at: string; ends_at: string | null }> = [];
+      let upcoming: Array<{
+        name: string;
+        starts_at: string;
+        ends_at: string | null;
+      }> = [];
       try {
         const { data } = await supabase
           .from("live_sessions")
@@ -493,10 +510,18 @@ const COMMAND_MAP: Record<
 
       if (recent && recent.length > 0) {
         recentLines = [
-          line(lang === "ko" ? "[ 최근 메시지 ]" : "[ RECENT MESSAGES ]", "system"),
-          ...recent.reverse().map((msg) =>
-            line(`[${fmtKstHm(new Date(msg.created_at))}] ${msg.nick}: ${msg.message}`, "live"),
+          line(
+            lang === "ko" ? "[ 최근 메시지 ]" : "[ RECENT MESSAGES ]",
+            "system",
           ),
+          ...recent
+            .reverse()
+            .map((msg) =>
+              line(
+                `[${fmtKstHm(new Date(msg.created_at))}] ${msg.nick}: ${msg.message}`,
+                "live",
+              ),
+            ),
           line("", "divider"),
         ];
       }
@@ -518,24 +543,62 @@ const COMMAND_MAP: Record<
   },
 
   admin: async (args, lang) => {
-    const adminKey = process.env.NEXT_PUBLIC_ADMIN_KEY;
+    const adminEmail =
+      process.env.NEXT_PUBLIC_ADMIN_EMAIL || process.env.NEXT_PUBLIC_ADMIN_KEY;
 
     if (typeof window === "undefined") {
       return parseContent(COMMAND_TEXTS.adminDenied, lang);
     }
 
-    const isAuthenticated = localStorage.getItem("terminal_admin") === "true";
+    // Supabase 세션 확인 (또는 기존 localStorage 병행)
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const isAuthenticated =
+      !!session || localStorage.getItem("terminal_admin") === "true";
 
+    const sub = args[0]?.toLowerCase();
+
+    // 로그인 시도: admin login <password>
+    if (sub === "login") {
+      const password = args[1];
+      if (!adminEmail || !password) {
+        console.error("ADMIN_AUTH_ERROR: Missing email or password");
+        return parseContent(COMMAND_TEXTS.adminError, lang);
+      }
+      try {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: adminEmail,
+          password,
+        });
+        if (error) throw error;
+
+        localStorage.setItem("terminal_admin", "true");
+        return parseContent(COMMAND_TEXTS.adminLoginSuccess, lang);
+      } catch (err) {
+        console.error("ADMIN_LOGIN_FAILED:", err);
+        return parseContent(COMMAND_TEXTS.adminLoginFail, lang);
+      }
+    }
+
+    // 로그아웃 시도: admin logout
+    if (sub === "logout") {
+      try {
+        await supabase.auth.signOut();
+        localStorage.removeItem("terminal_admin");
+        return parseContent(COMMAND_TEXTS.adminLogoutSuccess, lang);
+      } catch (err) {
+        console.error("ADMIN_LOGOUT_FAILED:", err);
+        return parseContent(COMMAND_TEXTS.adminError, lang);
+      }
+    }
+
+    // 미인증 상태
     if (!isAuthenticated) {
-      // args 없음: 접근 불가 메시지
       if (args.length === 0) {
         return parseContent(COMMAND_TEXTS.adminDenied, lang);
       }
-      // args 1개: 패스워드 시도 (맞으면 인증, 틀리면 힌트 없이 commandNotFound)
-      if (args.length === 1 && adminKey && args[0] === adminKey) {
-        localStorage.setItem("terminal_admin", "true");
-        return parseContent(COMMAND_TEXTS.adminUnlocked, lang);
-      }
+      // 예전 방식(admin <key>) 호환성 제거 또는 login 안내
       return parseContent(COMMAND_TEXTS.commandNotFound("admin"), lang);
     }
 
@@ -545,7 +608,6 @@ const COMMAND_MAP: Record<
     }
 
     // 인증 후 서브 커맨드
-    const sub = args[0]?.toLowerCase();
     const sub2 = args[1]?.toLowerCase();
 
     if (sub === "live") {
@@ -553,9 +615,13 @@ const COMMAND_MAP: Record<
       if (sub2 === "open") {
         const name = args.slice(2).join(" ").trim() || "LIVE SESSION";
         try {
-          await supabase.from("live_sessions").insert({ name, is_force_open: true });
+          const { error } = await supabase
+            .from("live_sessions")
+            .insert({ name, is_force_open: true });
+          if (error) throw error;
           return parseContent(COMMAND_TEXTS.adminLiveOpened, lang);
-        } catch {
+        } catch (err) {
+          console.error("ADMIN_LIVE_OPEN_FAILED:", err);
           return parseContent(COMMAND_TEXTS.adminError, lang);
         }
       }
@@ -586,18 +652,21 @@ const COMMAND_MAP: Record<
           nameArgs = addArgs;
         }
         const name = nameArgs.join(" ").trim();
-        if (!name || !startRaw) return parseContent(COMMAND_TEXTS.adminError, lang);
+        if (!name || !startRaw)
+          return parseContent(COMMAND_TEXTS.adminError, lang);
         const toUtc = (kst: string) =>
           new Date("20" + kst + ":00+09:00").toISOString();
         try {
-          await supabase.from("live_sessions").insert({
+          const { error } = await supabase.from("live_sessions").insert({
             name,
             is_force_open: false,
             starts_at: toUtc(startRaw),
             ends_at: endRaw ? toUtc(endRaw) : null,
           });
+          if (error) throw error;
           return parseContent(COMMAND_TEXTS.adminLiveScheduled, lang);
-        } catch {
+        } catch (err) {
+          console.error("ADMIN_LIVE_ADD_FAILED:", err);
           return parseContent(COMMAND_TEXTS.adminError, lang);
         }
       }
@@ -607,29 +676,38 @@ const COMMAND_MAP: Record<
       if (sub2 === "close") {
         const targetName = args.slice(2).join(" ").trim();
         try {
-          const now = new Date().toISOString();
+          let sessionId: string | undefined;
           if (targetName) {
-            // 이름으로 ID 조회 후 ID로 업데이트 (URL 인코딩 이슈 회피)
-            const { data: found } = await supabase
+            const { data } = await supabase
               .from("live_sessions")
               .select("id")
+              .ilike("name", targetName)
               .is("closed_at", null)
-              .ilike("name", targetName);
-            if (!found || found.length === 0)
+              .limit(1);
+            sessionId = data?.[0]?.id;
+            if (!sessionId)
               return parseContent(COMMAND_TEXTS.adminLiveNotFound, lang);
-            await supabase
-              .from("live_sessions")
-              .update({ closed_at: now })
-              .in("id", found.map((s: { id: string }) => s.id));
           } else {
-            await supabase
+            const { data } = await supabase
               .from("live_sessions")
-              .update({ closed_at: now })
+              .select("id")
+              .eq("is_force_open", true)
               .is("closed_at", null)
-              .eq("is_force_open", true);
+              .limit(1);
+            sessionId = data?.[0]?.id;
+            if (!sessionId) return parseContent(COMMAND_TEXTS.adminError, lang);
           }
+          const { error } = await supabase
+            .from("live_sessions")
+            .update({
+              closed_at: new Date().toISOString(),
+              is_force_open: false,
+            })
+            .eq("id", sessionId);
+          if (error) throw error;
           return parseContent(COMMAND_TEXTS.adminLiveClosed, lang);
-        } catch {
+        } catch (err) {
+          console.error("ADMIN_LIVE_CLOSE_FAILED:", err);
           return parseContent(COMMAND_TEXTS.adminError, lang);
         }
       }
@@ -639,20 +717,23 @@ const COMMAND_MAP: Record<
         const targetName = args.slice(2).join(" ").trim();
         if (!targetName) return parseContent(COMMAND_TEXTS.adminError, lang);
         try {
-          // 이름으로 ID 조회 후 ID로 삭제 (URL 인코딩 이슈 회피)
-          const { data: found } = await supabase
+          const { data } = await supabase
             .from("live_sessions")
             .select("id")
-            .eq("is_force_open", false)
-            .ilike("name", targetName);
-          if (!found || found.length === 0)
+            .ilike("name", targetName)
+            .is("closed_at", null)
+            .limit(1);
+          const sessionId = data?.[0]?.id;
+          if (!sessionId)
             return parseContent(COMMAND_TEXTS.adminLiveNotFound, lang);
-          await supabase
+          const { error } = await supabase
             .from("live_sessions")
             .delete()
-            .in("id", found.map((s: { id: string }) => s.id));
+            .eq("id", sessionId);
+          if (error) throw error;
           return parseContent(COMMAND_TEXTS.adminLiveDeleted, lang);
-        } catch {
+        } catch (err) {
+          console.error("ADMIN_LIVE_DELETE_FAILED:", err);
           return parseContent(COMMAND_TEXTS.adminError, lang);
         }
       }
@@ -660,13 +741,18 @@ const COMMAND_MAP: Record<
       // admin live status  — 세션 목록 출력
       if (sub2 === "status") {
         try {
-          const { data } = await supabase
+          const { data, error } = await supabase
             .from("live_sessions")
             .select("id, name, is_force_open, starts_at, ends_at, closed_at")
             .order("created_at", { ascending: false })
-            .limit(10);
-          return parseContent(COMMAND_TEXTS.adminSessionStatus(data ?? []), lang);
-        } catch {
+            .limit(20);
+          if (error) throw error;
+          return parseContent(
+            COMMAND_TEXTS.adminSessionStatus(data || []),
+            lang,
+          );
+        } catch (err) {
+          console.error("ADMIN_LIVE_STATUS_FAILED:", err);
           return parseContent(COMMAND_TEXTS.adminError, lang);
         }
       }
@@ -674,46 +760,51 @@ const COMMAND_MAP: Record<
       // admin live clear  — 현재 활성 세션 메시지 삭제
       if (sub2 === "clear") {
         try {
-          const { data: latest } = await supabase
+          const { data: active } = await supabase
             .from("live_sessions")
             .select("id")
             .is("closed_at", null)
-            .order("created_at", { ascending: false })
-            .limit(1)
-            .single();
-          if (latest) {
-            await supabase
-              .from("live_messages")
-              .delete()
-              .eq("session_id", latest.id);
-          }
+            .order("is_force_open", { ascending: false })
+            .limit(1);
+          if (!active?.[0]) return parseContent(COMMAND_TEXTS.adminError, lang);
+          const { error } = await supabase
+            .from("live_messages")
+            .delete()
+            .eq("session_id", active[0].id);
+          if (error) throw error;
           return parseContent(COMMAND_TEXTS.adminLiveCleared, lang);
-        } catch {
+        } catch (err) {
+          console.error("ADMIN_LIVE_CLEAR_FAILED:", err);
           return parseContent(COMMAND_TEXTS.adminError, lang);
         }
       }
     }
 
     if (sub === "ann") {
-      const message = args.slice(1).join(" ").trim();
-      if (!message || message === "clear") {
+      const msg = args.slice(1).join(" ").trim();
+      if (sub2 === "clear") {
         try {
-          await supabase
+          const { error } = await supabase
             .from("app_config")
             .update({ value: "" })
             .eq("key", "announcement");
+          if (error) throw error;
           return parseContent(COMMAND_TEXTS.adminAnnCleared, lang);
-        } catch {
+        } catch (err) {
+          console.error("ADMIN_ANN_CLEAR_FAILED:", err);
           return parseContent(COMMAND_TEXTS.adminError, lang);
         }
       }
+      if (!msg) return parseContent(COMMAND_TEXTS.adminError, lang);
       try {
-        await supabase
+        const { error } = await supabase
           .from("app_config")
-          .update({ value: message })
+          .update({ value: msg })
           .eq("key", "announcement");
+        if (error) throw error;
         return parseContent(COMMAND_TEXTS.adminAnnSent, lang);
-      } catch {
+      } catch (err) {
+        console.error("ADMIN_ANN_SEND_FAILED:", err);
         return parseContent(COMMAND_TEXTS.adminError, lang);
       }
     }
