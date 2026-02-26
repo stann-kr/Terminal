@@ -15,6 +15,7 @@ web/.env*.local
 .agents/
 .docs/
 .gemini/
+.claude/
 
 # DO NOT ignore src!
 # Clean up any generic dot-folder ignore rules
