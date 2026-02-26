@@ -8,6 +8,7 @@ import {
   type LanguageType,
 } from "@/lib/commands";
 import { COMMAND_TEXTS } from "@/lib/command-text";
+import { supabase } from "@/lib/supabase";
 import Logo from "./Logo";
 
 const LINE_COLOR: Record<TerminalLine["type"], string> = {
@@ -20,6 +21,7 @@ const LINE_COLOR: Record<TerminalLine["type"], string> = {
   header: "", // Uses .terminal-header from globals.css directly
   divider: "",
   progress: "text-[var(--grey-muted)] font-mono",
+  live: "text-[var(--grey-text)]", // live chat messages — same color as output, with fadeIn animation
 };
 
 type QuickCommand = {
@@ -27,6 +29,7 @@ type QuickCommand = {
   cmd: string;
   stageOnly?: boolean;
   back?: boolean;
+  flow?: "transmit" | "live";
 };
 
 const DEFAULT_QUICK_COMMANDS: QuickCommand[] = [
@@ -35,6 +38,7 @@ const DEFAULT_QUICK_COMMANDS: QuickCommand[] = [
   { label: "gate", cmd: "gate" },
   { label: "whois", cmd: "whois" },
   { label: "transmit", cmd: "transmit" },
+  { label: "live", cmd: "live" },
   { label: "link", cmd: "link" },
   { label: "status", cmd: "status" },
   { label: "settings", cmd: "settings" },
@@ -68,6 +72,8 @@ const AVAILABLE_COMMANDS = [
   "whois nusnoom",
   "whoami",
   "transmit",
+  "live",
+  "name",
   "date",
   "time",
   "ping",
@@ -96,6 +102,20 @@ export default function TerminalShell() {
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [isLiveMode, setIsLiveMode] = useState(false);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+
+  // Live chat refs
+  const liveChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(
+    null,
+  );
+  const lastLiveSentRef = useRef<number>(0);
+
+  // Announcement refs
+  const annChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(
+    null,
+  );
+  const pendingAnnouncementRef = useRef<string>("");
 
   // Settings State
   const [language, setLanguage] = useState<LanguageType | null>(null);
@@ -103,18 +123,37 @@ export default function TerminalShell() {
   const [isAnimatingInput, setIsAnimatingInput] = useState(false);
   const [quickCmdContext, setQuickCmdContext] = useState<string | null>(null);
   const [nodeId, setNodeId] = useState<string>("");
+  const [displayedCommands, setDisplayedCommands] = useState<QuickCommand[]>(
+    DEFAULT_QUICK_COMMANDS,
+  );
+  const [isCmdsFading, setIsCmdsFading] = useState(false);
   // localStorage 로드 완료 전 첫 렌더에서 UI가 깜빡이는 것 방지
   const [isInitialized, setIsInitialized] = useState(false);
   const hasBootedRef = useRef(false);
+  const isReturningUserRef = useRef(false);
   const isAnimatingRef = useRef(false);
+  const latestCommandsRef = useRef<QuickCommand[]>(DEFAULT_QUICK_COMMANDS);
+  const cmdKeyRef = useRef<string>("");
+  const prevContextRef = useRef<string | null>(null);
+  const prevLiveModeRef = useRef<boolean>(false);
+  const pendingFlowRef = useRef<"transmit" | "live" | null>(null);
 
   // Refs
   const inputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const historyContainerRef = useRef<HTMLDivElement>(null);
   // boot 시퀀스에서 typeOutLines를 안전하게 호출하기 위한 ref
   const typeOutLinesRef = useRef<
     ((lines: TerminalLine[]) => Promise<void>) | null
   >(null);
+
+  const isInputVisible =
+    isInitialized && (language === null || (!isBooting && !isTyping));
+
+  const isInputActive = isInputVisible && !isAnimatingInput;
+
+  // 버튼 활성화 상태
+  const isButtonsActive = isInputActive;
 
   /** 초기화: localStorage 즉시 읽기 → 테마 적용 → 스캔 애니메이션 → 부팅 또는 언어 선택 */
   useEffect(() => {
@@ -128,6 +167,19 @@ export default function TerminalShell() {
       | null;
     document.documentElement.setAttribute("data-theme", savedTheme ?? "dark");
     if (savedLang) document.documentElement.lang = savedLang;
+
+    // 재방문 여부 — boot effect에서 시퀀스 분기에 사용
+    isReturningUserRef.current = !!savedLang;
+
+    // 공지 선 로드 — boot 완료 시 출력할 메시지를 미리 fetch
+    supabase
+      .from("app_config")
+      .select("value")
+      .eq("key", "announcement")
+      .single()
+      .then(({ data }) => {
+        pendingAnnouncementRef.current = data?.value ?? "";
+      });
 
     // 사용자 식별자 (Method B) 초기화
     let storedNodeId = localStorage.getItem("terminal_node_id");
@@ -202,8 +254,14 @@ export default function TerminalShell() {
     if (language === null || hasBootedRef.current) return;
     hasBootedRef.current = true;
 
-    // 헤더는 init 단계에서 이미 출력됨 — 바로 부팅 라인 추가
-    const bootLines = COMMAND_TEXTS.bootSequence[language];
+    // 재방문 유저면 슬립 웨이크 시퀀스, 첫 방문이면 풀 부팅 시퀀스
+    const isReturning = isReturningUserRef.current;
+    const bootLines = isReturning
+      ? COMMAND_TEXTS.wakeSequence[language]
+      : COMMAND_TEXTS.bootSequence[language];
+    const endMessage = isReturning
+      ? COMMAND_TEXTS.resumeMessage[language]
+      : COMMAND_TEXTS.welcomeMessage[language];
     let currentIndex = 0;
     let timeoutId: NodeJS.Timeout;
 
@@ -225,7 +283,7 @@ export default function TerminalShell() {
           if (language === null) return;
           setHistory((prev) => [
             ...prev,
-            ...COMMAND_TEXTS.welcomeMessage[language].map((item) => {
+            ...endMessage.map((item) => {
               const text = typeof item === "string" ? item : item[0];
               const type = typeof item === "string" ? "output" : item[1];
               return {
@@ -236,9 +294,27 @@ export default function TerminalShell() {
             }),
           ]);
           setIsBooting(false);
-          // 부팅 완료 후 help 자동 출력 (setIsBooting(false)와 배치 → isTyping=true로 이어짐)
-          const helpResult = await processCommand("help", language);
-          typeOutLinesRef.current?.(helpResult.lines);
+          // 공지 출력 (welcome/resume 메시지 다음)
+          if (pendingAnnouncementRef.current) {
+            const bannerItems = COMMAND_TEXTS.announcementBanner(
+              pendingAnnouncementRef.current,
+            )[language];
+            setHistory((prev) => [
+              ...prev,
+              ...bannerItems.map((item) => ({
+                id: `ann-${uid()}`,
+                text: typeof item === "string" ? item : item[0],
+                type: (typeof item === "string"
+                  ? "output"
+                  : item[1]) as TerminalLine["type"],
+              })),
+            ]);
+          }
+          // 첫 방문 시에만 help 자동 출력
+          if (!isReturning) {
+            const helpResult = await processCommand("help", language);
+            typeOutLinesRef.current?.(helpResult.lines);
+          }
         }, 500);
       }
     }, 150);
@@ -252,13 +328,11 @@ export default function TerminalShell() {
 
   // 터미널 하단 고정 스크롤 (모바일 간헐적 중단 버그 수정 v0.32.1)
   const scrollToBottom = useCallback(() => {
-    if (!bottomRef.current) return;
+    if (!historyContainerRef.current) return;
+    const container = historyContainerRef.current;
 
     const forceScroll = () => {
-      const container = bottomRef.current?.parentElement;
-      if (container) {
-        container.scrollTop = container.scrollHeight;
-      }
+      container.scrollTop = container.scrollHeight;
     };
 
     requestAnimationFrame(() => {
@@ -270,6 +344,22 @@ export default function TerminalShell() {
   useEffect(() => {
     scrollToBottom();
   }, [history, scrollToBottom]);
+
+  // [Fix] 퀵 커맨드 전환 등 레이아웃 변화 시 스크롤 동기화 (ResizeObserver Lite)
+  useEffect(() => {
+    if (!historyContainerRef.current) return;
+
+    const observer = new ResizeObserver(() => {
+      // 레이아웃이 변할 때만 즉각적으로 스크롤 보정
+      if (historyContainerRef.current) {
+        historyContainerRef.current.scrollTop =
+          historyContainerRef.current.scrollHeight;
+      }
+    });
+
+    observer.observe(historyContainerRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   const typeOutLines = useCallback(
     async (linesToType: TerminalLine[]) => {
@@ -339,6 +429,16 @@ export default function TerminalShell() {
         scrollToBottom();
       }
       setIsTyping(false);
+      // setIsTyping(false) 이후 React 리렌더(input visible 복원) 완료 후 포커스
+      // 데스크탑 전용 — 모바일은 키보드 팝업 방지
+      setTimeout(() => {
+        if (
+          typeof window !== "undefined" &&
+          window.matchMedia("(hover: hover) and (pointer: fine)").matches
+        ) {
+          inputRef.current?.focus();
+        }
+      }, 0);
     },
     [scrollToBottom],
   );
@@ -348,31 +448,82 @@ export default function TerminalShell() {
     typeOutLinesRef.current = typeOutLines;
   }, [typeOutLines]);
 
-  const isInputVisible =
-    isInitialized && (language === null || (!isBooting && !isTyping));
-
-  const isInputActive = isInputVisible && !isAnimatingInput;
-
-  // 버튼 활성화 상태
-  const isButtonsActive = isInputActive;
-
-  // [Refinement] 퀵 커맨드 영역의 높이가 변할 때(활성/비활성 또는 컨텍스트 전환) 스크롤 유지
+  // 컴포넌트 언마운트 시 live 채널 구독 해제
   useEffect(() => {
-    let animationFrameId: number;
-    const startTime = Date.now();
-    const duration = 350; // CSS 트랜지션(0.3s)보다 약간 길게
-
-    const syncScroll = () => {
-      scrollToBottom();
-      const elapsed = Date.now() - startTime;
-      if (elapsed < duration) {
-        animationFrameId = requestAnimationFrame(syncScroll);
-      }
+    return () => {
+      liveChannelRef.current?.unsubscribe();
     };
+  }, []);
 
-    animationFrameId = requestAnimationFrame(syncScroll);
-    return () => cancelAnimationFrame(animationFrameId);
-  }, [isInputVisible, quickCmdContext, scrollToBottom]);
+  // 공지 Realtime 구독 — language 확정 후 항상 활성
+  useEffect(() => {
+    if (language === null) return;
+    const channel = supabase
+      .channel("app_config_changes")
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "app_config" },
+        (payload) => {
+          const row = payload.new as { key: string; value: string };
+          if (row.key !== "announcement" || !row.value) return;
+          const bannerItems = COMMAND_TEXTS.announcementBanner(row.value)[
+            language
+          ];
+          setHistory((prev) => [
+            ...prev,
+            ...bannerItems.map((item) => ({
+              id: `ann-${uid()}`,
+              text: typeof item === "string" ? item : item[0],
+              type: (typeof item === "string"
+                ? "output"
+                : item[1]) as TerminalLine["type"],
+            })),
+          ]);
+          scrollToBottom();
+        },
+      )
+      .subscribe();
+    annChannelRef.current = channel;
+    return () => {
+      channel.unsubscribe();
+      annChannelRef.current = null;
+    };
+  }, [language, scrollToBottom]);
+
+  // 퀵 커맨드 목록 변경 시 공통 페이드 애니메이션 (newKey 의존성 추가)
+  useEffect(() => {
+    const newKey = latestCommandsRef.current
+      .map((c) => c.cmd + c.label)
+      .join("|");
+
+    // 컨텍스트 또는 라이브 모드 상태가 변경되었는지 확인
+    const isContextChanged =
+      quickCmdContext !== prevContextRef.current ||
+      isLiveMode !== prevLiveModeRef.current;
+
+    prevContextRef.current = quickCmdContext;
+    prevLiveModeRef.current = isLiveMode;
+
+    if (newKey === cmdKeyRef.current) return;
+
+    if (cmdKeyRef.current === "" || !isContextChanged) {
+      // 초기화이거나 동일 컨텍스트 내의 입력(타이핑 등) 변화인 경우: 애니메이션 없이 즉시 반영
+      cmdKeyRef.current = newKey;
+      setDisplayedCommands([...latestCommandsRef.current]);
+      setIsCmdsFading(false);
+      return;
+    }
+
+    // 컨텍스트 전환 시에만 페이드 애니메이션 적용
+    cmdKeyRef.current = newKey;
+    setIsCmdsFading(true);
+    const t = setTimeout(() => {
+      setDisplayedCommands([...latestCommandsRef.current]);
+      setIsCmdsFading(false);
+    }, 100);
+
+    return () => clearTimeout(t);
+  }, [language, quickCmdContext, isBooting, isTyping, input, isLiveMode]);
 
   const handleContainerClick = useCallback(
     (e: React.MouseEvent) => {
@@ -417,6 +568,83 @@ export default function TerminalShell() {
         return;
       }
 
+      // ── LIVE MODE 입력 처리 ──────────────────────────────────────────
+      if (isLiveMode) {
+        setInput("");
+        if (trimmedCmd === "/leave") {
+          setIsLiveMode(false);
+          setActiveSessionId(null);
+          setQuickCmdContext(null);
+          liveChannelRef.current?.unsubscribe();
+          liveChannelRef.current = null;
+          const exitLines = COMMAND_TEXTS.liveExit[language ?? "en"];
+          setHistory((prev) => [
+            ...prev,
+            { id: `in-${uid()}`, text: `> ${trimmedCmd}`, type: "input" },
+            ...exitLines.map((item) => ({
+              id: `live-exit-${uid()}`,
+              text: typeof item === "string" ? item : item[0],
+              type: (typeof item === "string"
+                ? "output"
+                : item[1]) as TerminalLine["type"],
+            })),
+          ]);
+          return;
+        }
+
+        // cooldown 체크 (1초)
+        const now = Date.now();
+        if (now - lastLiveSentRef.current < 1000) {
+          const tooFastLine = COMMAND_TEXTS.liveTooFast[language ?? "en"][0];
+          setHistory((prev) => [
+            ...prev,
+            {
+              id: `live-fast-${uid()}`,
+              text:
+                typeof tooFastLine === "string" ? tooFastLine : tooFastLine[0],
+              type: (typeof tooFastLine === "string"
+                ? "system"
+                : tooFastLine[1]) as TerminalLine["type"],
+            },
+          ]);
+          return;
+        }
+        lastLiveSentRef.current = now;
+
+        const nick =
+          localStorage.getItem("terminal_name") ||
+          localStorage.getItem("terminal_node_id") ||
+          "UNKNOWN";
+        const device_id = localStorage.getItem("terminal_node_id");
+
+        scrollToBottom();
+        try {
+          await supabase.from("live_messages").insert([
+            {
+              nick,
+              message: trimmedCmd,
+              device_id,
+              session_id: activeSessionId,
+            },
+          ]);
+        } catch (error) {
+          console.error("Failed to send live message:", error);
+          const errLine = COMMAND_TEXTS.liveError[language ?? "en"][0];
+          setHistory((prev) => [
+            ...prev,
+            {
+              id: `live-err-${uid()}`,
+              text: typeof errLine === "string" ? errLine : errLine[0],
+              type: (typeof errLine === "string"
+                ? "error"
+                : errLine[1]) as TerminalLine["type"],
+            },
+          ]);
+        }
+        return;
+      }
+      // ────────────────────────────────────────────────────────────────
+
       const inputLine: TerminalLine = {
         id: `in-${uid()}`,
         text: `> ${trimmedCmd}`,
@@ -426,20 +654,33 @@ export default function TerminalShell() {
       setHistory((prev) => [...prev, inputLine]);
       setCommandHistory((prev) => [...prev, trimmedCmd]);
       setHistoryIndex(-1);
+      const parts = trimmedCmd.split(/\s+/);
+
+      // [Refinement] 이름 설정 후 후속 액션 자동화
+      if (parts[0].toLowerCase() === "name" && pendingFlowRef.current) {
+        const flow = pendingFlowRef.current;
+        pendingFlowRef.current = null; // 즉시 초기화
+
+        // 이름 설정 명령어 처리 (localStorage 반영 등)를 위해 약간의 지연 후 실행
+        setTimeout(() => {
+          const newName = localStorage.getItem("terminal_name") || "unknown";
+          if (flow === "transmit") {
+            typeAndExecute(`transmit ${newName} `, { stageOnly: true });
+          } else if (flow === "live") {
+            handleCommand("live");
+          }
+        }, 100);
+      }
 
       // transmit 커맨드: DB 통신 중 진행 바 병렬 표시
-      const cmdParts = trimmedCmd.split(/\s+/);
-      const isTxList =
-        cmdParts[0].toLowerCase() === "transmit" && cmdParts.length === 1;
-      const isTxSend =
-        cmdParts[0].toLowerCase() === "transmit" && cmdParts.length >= 3;
+      const isTx = parts[0].toLowerCase() === "transmit";
+      const isTxSend = isTx && parts.length >= 2 && !/^\d+$/.test(parts[1]);
 
       // 로딩 바 완료 Promise (transmit이 아닌 경우 즉시 resolve)
       let loadingBarDone: Promise<void> = Promise.resolve();
 
-      if ((isTxList || isTxSend) && language) {
-        const fastMode =
-          localStorage.getItem("terminal_fast_mode") === "true";
+      if (isTx && language) {
+        const fastMode = localStorage.getItem("terminal_fast_mode") === "true";
         const loadingEntry = isTxSend
           ? COMMAND_TEXTS.transmit[language].saving[0]
           : COMMAND_TEXTS.transmit[language].loading[0];
@@ -504,9 +745,47 @@ export default function TerminalShell() {
         typeOutLines(result.lines);
       }
 
-      // Handle Actions (Settings)
+      // Handle Actions
       if (result.action) {
-        if (result.action.type === "CHANGE_LANG") {
+        if (result.action.type === "ENTER_LIVE") {
+          const { sessionId } = result.action;
+          setIsLiveMode(true);
+          setActiveSessionId(sessionId);
+          const channel = supabase
+            .channel(`live_session_${sessionId}`)
+            .on(
+              "postgres_changes",
+              {
+                event: "INSERT",
+                schema: "public",
+                table: "live_messages",
+                filter: `session_id=eq.${sessionId}`,
+              },
+              (payload) => {
+                const msg = payload.new as {
+                  nick: string;
+                  message: string;
+                  created_at: string;
+                };
+                const d = new Date(msg.created_at);
+                const hh = String(d.getHours()).padStart(2, "0");
+                const mm = String(d.getMinutes()).padStart(2, "0");
+                setHistory((prev) => [
+                  ...prev,
+                  {
+                    id: `live-${uid()}`,
+                    text: `[${hh}:${mm}] ${msg.nick}: ${msg.message}`,
+                    type: "live" as TerminalLine["type"],
+                  },
+                ]);
+                scrollToBottom();
+              },
+            )
+            .subscribe();
+          liveChannelRef.current = channel;
+        } else if (result.action.type === "LIVE_NO_NAME_CHOICE") {
+          setQuickCmdContext("live-choice");
+        } else if (result.action.type === "CHANGE_LANG") {
           setLanguage(result.action.payload);
           localStorage.setItem("terminal_lang", result.action.payload);
           document.documentElement.lang = result.action.payload;
@@ -546,9 +825,16 @@ export default function TerminalShell() {
         }
       }
 
+      scrollToBottom();
       setInput("");
     },
-    [language, handleLanguageSelection, typeOutLines],
+    [
+      language,
+      handleLanguageSelection,
+      typeOutLines,
+      isLiveMode,
+      scrollToBottom,
+    ],
   );
 
   /** 퀵 커맨드 클릭 시 입력창에 글자를 한 자씩 타이핑한 뒤 실행 */
@@ -560,6 +846,7 @@ export default function TerminalShell() {
       if (isAnimatingRef.current) return;
       isAnimatingRef.current = true;
       setIsAnimatingInput(true);
+      scrollToBottom();
 
       // [Refinement] 80ms 페이드아웃이 시작될 시간을 충분히 줌 (깜빡임 방지)
       await new Promise((r) => setTimeout(r, 80));
@@ -630,7 +917,9 @@ export default function TerminalShell() {
       } else if (e.key === "Tab") {
         e.preventDefault();
         if (language === null) return;
-        const val = (e.target as HTMLInputElement).value.trimStart().toLowerCase();
+        const val = (e.target as HTMLInputElement).value
+          .trimStart()
+          .toLowerCase();
         if (!val) return;
         const match = AVAILABLE_COMMANDS.find((c) => c.startsWith(val));
         if (match && match !== val) {
@@ -659,7 +948,9 @@ export default function TerminalShell() {
   };
 
   let currentQuickCommands: QuickCommand[] = DEFAULT_QUICK_COMMANDS;
-  if (language === null) {
+  if (isLiveMode) {
+    currentQuickCommands = [{ label: "/leave", cmd: "/leave" }];
+  } else if (language === null) {
     currentQuickCommands = [
       { label: "1 (EN)", cmd: "1" },
       { label: "2 (KO)", cmd: "2" },
@@ -698,6 +989,20 @@ export default function TerminalShell() {
           { label: "reset", cmd: "settings reset" },
         ];
       }
+    } else if (activeCtx === "live-choice") {
+      currentQuickCommands = [
+        BACK_BTN,
+        {
+          label: language === "ko" ? `${nodeId} 로 접속` : `enter: ${nodeId}`,
+          cmd: "live --node",
+        },
+        {
+          label: language === "ko" ? "이름 설정" : "set name",
+          cmd: "name ",
+          stageOnly: true,
+          flow: "live",
+        },
+      ];
     } else if (activeCtx === "whois") {
       currentQuickCommands = [
         BACK_BTN,
@@ -710,6 +1015,42 @@ export default function TerminalShell() {
         BACK_BTN,
         { label: "login stann", cmd: "sudo login stann" },
       ];
+    } else if (activeCtx === "name") {
+      // [Refinement] "name <이름>" 입력 중:
+      // 1. "clear" 입력 시 -> "이름 제거" 버튼
+      // 2. 이름 입력 시 -> "설정" 버튼
+      // 3. 빈 값일 때 -> "이름 제거" (저장된 이름 있을 시) 또는 뒤로만 표시
+      const nameVal = input
+        .trimStart()
+        .replace(/^name\s*/i, "")
+        .trim();
+
+      const savedName =
+        typeof window !== "undefined"
+          ? localStorage.getItem("terminal_name")
+          : null;
+
+      const REMOVE_NAME_BTN: QuickCommand = {
+        label: language === "ko" ? "이름 제거" : "remove name",
+        cmd: "name clear",
+      };
+
+      if (nameVal.toLowerCase() === "clear") {
+        currentQuickCommands = [BACK_BTN, REMOVE_NAME_BTN];
+      } else if (nameVal.length > 0) {
+        currentQuickCommands = [
+          BACK_BTN,
+          {
+            label: language === "ko" ? `"${nameVal}" 설정` : `set "${nameVal}"`,
+            cmd: `name ${nameVal}`,
+          },
+        ];
+      } else {
+        // 입력이 없을 때: 저장된 이름이 있으면 제거 옵션 노출
+        currentQuickCommands = savedName
+          ? [BACK_BTN, REMOVE_NAME_BTN]
+          : [BACK_BTN];
+      }
     } else if (activeCtx === "transmit") {
       // [Refinement] 현재 입력값이 transmit으로 시작하는 경우 동적 버튼 노출
       // 타이핑 애니메이션 중에는 버튼 목록을 고정하여 버벅임 방지
@@ -722,17 +1063,47 @@ export default function TerminalShell() {
           },
         ];
       } else {
-        currentQuickCommands = [
-          BACK_BTN,
-          {
-            label: language === "ko" ? "메시지 전송" : "send message",
-            cmd: `transmit ${nodeId} `,
-            stageOnly: true,
-          },
-        ];
+        const savedName =
+          typeof window !== "undefined"
+            ? localStorage.getItem("terminal_name")
+            : null;
+        if (savedName) {
+          currentQuickCommands = [
+            BACK_BTN,
+            {
+              label: language === "ko" ? "메시지 작성" : "write message",
+              cmd: `transmit ${savedName} `,
+              stageOnly: true,
+            },
+            {
+              label: language === "ko" ? "이름 설정" : "set name",
+              cmd: "name ",
+              stageOnly: true,
+              flow: "transmit",
+            },
+          ];
+        } else {
+          currentQuickCommands = [
+            BACK_BTN,
+            {
+              label: language === "ko" ? "이름 설정" : "set name",
+              cmd: "name ",
+              stageOnly: true,
+              flow: "transmit",
+            },
+            {
+              label: language === "ko" ? "노드로 작성" : "write as node",
+              cmd: `transmit ${nodeId} `,
+              stageOnly: true,
+            },
+          ];
+        }
       }
     }
   }
+
+  // 퀵 커맨드 변경 감지를 위해 최신 목록을 ref에 동기화 (useEffect에서 읽음)
+  latestCommandsRef.current = currentQuickCommands;
 
   return (
     <div
@@ -745,6 +1116,7 @@ export default function TerminalShell() {
         </div>
 
         <div
+          ref={historyContainerRef}
           className="flex-1 overflow-y-auto space-y-1 mb-2 mt-2"
           role="log"
           aria-live="polite"
@@ -885,7 +1257,15 @@ export default function TerminalShell() {
                 autoCorrect="off"
                 autoCapitalize="none"
                 spellCheck={false}
-                placeholder={language === "ko" ? "명령어 입력..." : "enter command..."}
+                placeholder={
+                  isLiveMode
+                    ? language === "ko"
+                      ? "메시지 전송... (/leave 로 세션 종료)"
+                      : "broadcast... (/leave to end session)"
+                    : language === "ko"
+                      ? "명령어 입력..."
+                      : "enter command..."
+                }
                 aria-label="Terminal input"
                 className="
                     peer flex-1 bg-transparent border-none outline-none
@@ -908,18 +1288,24 @@ export default function TerminalShell() {
           <div
             className="quick-cmd-inner flex flex-wrap gap-3 px-4"
             style={{
-              opacity: isInputActive ? 1 : 0,
+              opacity: isInputActive ? (isCmdsFading ? 0 : 1) : 0,
               transform: isInputActive ? "translateY(0)" : "translateY(8px)",
               pointerEvents: isInputActive ? "auto" : "none",
               transition: isInputActive
-                ? "opacity 250ms ease-out, transform 250ms ease-out"
+                ? isCmdsFading
+                  ? "opacity 80ms ease-in, transform 250ms ease-out"
+                  : "opacity 200ms ease-out, transform 250ms ease-out"
                 : "opacity 80ms ease-in, transform 80ms ease-in",
             }}
           >
-            {currentQuickCommands.map((qcmd) => (
+            {displayedCommands.map((qcmd) => (
               <button
                 key={qcmd.cmd}
                 onClick={() => {
+                  if (isLiveMode) {
+                    handleCommand(qcmd.cmd);
+                    return;
+                  }
                   if (qcmd.back) {
                     if (isAnimatingRef.current) return;
                     isAnimatingRef.current = true;
@@ -944,6 +1330,14 @@ export default function TerminalShell() {
                     typeAndExecute(qcmd.cmd, { nextContext: "whois" });
                   } else if (qcmd.cmd === "transmit") {
                     typeAndExecute(qcmd.cmd, { nextContext: "transmit" });
+                  } else if (qcmd.cmd.startsWith("name ")) {
+                    if (qcmd.flow) {
+                      pendingFlowRef.current = qcmd.flow;
+                    }
+                    typeAndExecute(qcmd.cmd, {
+                      nextContext: "name",
+                      stageOnly: qcmd.stageOnly,
+                    });
                   } else if (
                     quickCmdContext === "settings" ||
                     qcmd.cmd.startsWith("settings ") ||
@@ -951,6 +1345,9 @@ export default function TerminalShell() {
                     qcmd.cmd.startsWith("whois ") ||
                     quickCmdContext === "transmit"
                   ) {
+                    if (qcmd.back) {
+                      pendingFlowRef.current = null;
+                    }
                     typeAndExecute(qcmd.cmd, {
                       nextContext: null,
                       stageOnly: qcmd.stageOnly,
