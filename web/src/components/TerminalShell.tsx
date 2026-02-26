@@ -30,6 +30,7 @@ type QuickCommand = {
   stageOnly?: boolean;
   back?: boolean;
   flow?: "transmit" | "live";
+  readNodeId?: boolean; // 클릭 시점에 localStorage에서 nodeId를 동적으로 읽어 cmd에 주입
 };
 
 const DEFAULT_QUICK_COMMANDS: QuickCommand[] = [
@@ -523,7 +524,7 @@ export default function TerminalShell() {
     }, 100);
 
     return () => clearTimeout(t);
-  }, [language, quickCmdContext, isBooting, isTyping, input, isLiveMode]);
+  }, [language, quickCmdContext, isBooting, isTyping, input, isLiveMode, isAnimatingInput]);
 
   const handleContainerClick = useCallback(
     (e: React.MouseEvent) => {
@@ -993,14 +994,14 @@ export default function TerminalShell() {
       currentQuickCommands = [
         BACK_BTN,
         {
-          label: language === "ko" ? `${nodeId} 로 접속` : `enter: ${nodeId}`,
-          cmd: "live --node",
-        },
-        {
           label: language === "ko" ? "이름 설정" : "set name",
           cmd: "name ",
           stageOnly: true,
           flow: "live",
+        },
+        {
+          label: language === "ko" ? `${nodeId} 로 접속` : `enter: ${nodeId}`,
+          cmd: "live --node",
         },
       ];
     } else if (activeCtx === "whois") {
@@ -1054,7 +1055,14 @@ export default function TerminalShell() {
     } else if (activeCtx === "transmit") {
       // [Refinement] 현재 입력값이 transmit으로 시작하는 경우 동적 버튼 노출
       // 타이핑 애니메이션 중에는 버튼 목록을 고정하여 버벅임 방지
-      if (input.trimStart().startsWith("transmit ") && !isAnimatingInput) {
+      // SEND 버튼은 "transmit <name> <message>" 형태로 메시지가 실제로 존재할 때만 노출
+      const transmitParts = input.trim().split(/\s+/);
+      const hasTransmitMessage =
+        input.trimStart().startsWith("transmit ") &&
+        !isAnimatingInput &&
+        transmitParts.length >= 3;
+
+      if (hasTransmitMessage) {
         currentQuickCommands = [
           BACK_BTN,
           {
@@ -1062,6 +1070,9 @@ export default function TerminalShell() {
             cmd: input, // 현재 입력된 커맨드 그대로 사용
           },
         ];
+      } else if (input.trimStart().startsWith("transmit ") && !isAnimatingInput) {
+        // 이름만 입력된 상태 (메시지 없음) — 메시지 입력 대기, back만 노출
+        currentQuickCommands = [BACK_BTN];
       } else {
         const savedName =
           typeof window !== "undefined"
@@ -1092,9 +1103,10 @@ export default function TerminalShell() {
               flow: "transmit",
             },
             {
-              label: language === "ko" ? "노드로 작성" : "write as node",
-              cmd: `transmit ${nodeId} `,
+              label: language === "ko" ? `${nodeId} 로 작성` : `write as: ${nodeId}`,
+              cmd: "transmit ",
               stageOnly: true,
+              readNodeId: true,
             },
           ];
         }
@@ -1348,7 +1360,11 @@ export default function TerminalShell() {
                     if (qcmd.back) {
                       pendingFlowRef.current = null;
                     }
-                    typeAndExecute(qcmd.cmd, {
+                    // readNodeId: live --node 방식처럼 클릭 시점에 localStorage에서 nodeId 동적 주입
+                    const resolvedCmd = qcmd.readNodeId
+                      ? `transmit ${localStorage.getItem("terminal_node_id") || nodeId} `
+                      : qcmd.cmd;
+                    typeAndExecute(resolvedCmd, {
                       nextContext: null,
                       stageOnly: qcmd.stageOnly,
                     });
