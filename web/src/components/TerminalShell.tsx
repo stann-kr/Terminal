@@ -627,7 +627,8 @@ export default function TerminalShell() {
               session_id: activeSessionId,
             },
           ]);
-        } catch {
+        } catch (error) {
+          console.error("Failed to send live message:", error);
           const errLine = COMMAND_TEXTS.liveError[language ?? "en"][0];
           setHistory((prev) => [
             ...prev,
