@@ -10,6 +10,9 @@ export function useAnnouncement(
   setHistory: React.Dispatch<React.SetStateAction<TerminalLine[]>>,
 ) {
   const [announcementMsg, setAnnouncementMsg] = useState<string | null>(null);
+  const [lastShownAnnouncement, setLastShownAnnouncement] = useState<
+    string | null
+  >(null);
   const pendingAnnouncementRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -52,7 +55,13 @@ export function useAnnouncement(
   }, []);
 
   useEffect(() => {
-    if (announcementMsg && language !== null && !isBooting) {
+    if (
+      announcementMsg &&
+      language !== null &&
+      !isBooting &&
+      announcementMsg !== lastShownAnnouncement
+    ) {
+      setLastShownAnnouncement(announcementMsg);
       pendingAnnouncementRef.current = announcementMsg;
       const bannerItems = COMMAND_TEXTS.announcementBanner(
         pendingAnnouncementRef.current,
@@ -69,7 +78,7 @@ export function useAnnouncement(
       ]);
       pendingAnnouncementRef.current = null;
     }
-  }, [announcementMsg, language, setHistory]);
+  }, [announcementMsg, language, isBooting, lastShownAnnouncement, setHistory]);
 
   return { announcementMsg };
 }

@@ -202,6 +202,8 @@ export function useQuickCommands(
         setIsCmdsFading(false);
       }, 100);
       return () => clearTimeout(timer);
+    } else {
+      setIsCmdsFading(false);
     }
   }, [currentQuickCommands, displayedCommands]);
 
