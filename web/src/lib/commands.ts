@@ -445,7 +445,8 @@ const COMMAND_MAP: Record<
             (!s.ends_at || new Date(s.ends_at) > now)
           );
         }) ?? null;
-    } catch {
+    } catch (error) {
+      console.error("Failed to fetch live sessions:", error);
       // 조회 실패 시 오프라인 처리
     }
 
