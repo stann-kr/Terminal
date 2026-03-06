@@ -13,14 +13,14 @@ export const COLORS = {
   DARK_SURFACE: "#252525",
   DARK_BORDER: "#4a5a67",
   DARK_TEXT: "#eaefef",
-  DARK_MUTED: "#4a5a67",
+  DARK_MUTED: "#28b0e0", // 오렌지(#FC6736) 보색 계열 — 시안/청록
 
   // Theme: Light
   LIGHT_BG: "#EFECEC", // 요청 받은 라이트 배경
   LIGHT_SURFACE: "#FFFFFF",
   LIGHT_BORDER: "#D0D0D0",
   LIGHT_TEXT: "#1c1c1c",
-  LIGHT_MUTED: "#7B7B7B",
+  LIGHT_MUTED: "#156e8f", // 오렌지 보색 계열 — 라이트 배경용 어두운 시안 (#28b0e0 동일 색조, L 30%)
 
   // Feedback Colors (공통)
   ERROR: "#ff6b6b",
