@@ -5,8 +5,19 @@ export function useScrollManager() {
   const historyContainerRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = useCallback(() => {
-    if (bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior: "smooth" });
+    const container = historyContainerRef.current;
+    if (!container) return;
+
+    // iOS Safari는 빠른 연속 호출 시 smooth scrollIntoView가 무시됨
+    // scrollTop 직접 설정으로 실시간 반영
+    const isIOS =
+      typeof navigator !== "undefined" &&
+      /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+    if (isIOS) {
+      container.scrollTop = container.scrollHeight;
+    } else {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, []);
 
