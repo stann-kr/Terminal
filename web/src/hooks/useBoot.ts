@@ -27,6 +27,10 @@ export function useBoot(
       if (savedLang === "ko" || savedLang === "en") {
         setLanguage(savedLang);
       }
+      if (!localStorage.getItem("terminal_node_id")) {
+        const id = "NODE-" + Math.random().toString(36).slice(2, 7).toUpperCase();
+        localStorage.setItem("terminal_node_id", id);
+      }
     }
   }, []);
 
