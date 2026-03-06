@@ -26,7 +26,8 @@ import {
 
 import { COMMAND_TEXTS } from "../texts";
 import type { LanguageType, CommandResult, CommandHandler } from "../types";
-import { parseContent } from "../utils";
+import { parseContent, findSimilarCommand } from "../utils";
+import { AVAILABLE_COMMANDS } from "../constants";
 
 const COMMAND_MAP: Record<string, CommandHandler> = {
   help,
@@ -93,8 +94,14 @@ export async function processCommand(
     return { ...result, shouldClear: result.shouldClear || false };
   }
 
+  const singleWordCommands = AVAILABLE_COMMANDS.filter((c) => !c.includes(" "));
+  const suggestion = findSimilarCommand(cmd, singleWordCommands);
+  const notFoundLines = parseContent(COMMAND_TEXTS.commandNotFound(cmd), currentLang);
+  const suggestionLines = suggestion
+    ? parseContent(COMMAND_TEXTS.commandSuggestion(suggestion), currentLang)
+    : [];
   return {
-    lines: parseContent(COMMAND_TEXTS.commandNotFound(cmd), currentLang),
+    lines: [...notFoundLines, ...suggestionLines],
     shouldClear: false,
   };
 }

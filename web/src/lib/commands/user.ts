@@ -123,7 +123,7 @@ export const settings: CommandHandler = (args, lang) => {
         action: { type: "CHANGE_LANG", payload: val as "ko" | "en" },
       };
     }
-    return [line(`Invalid language: ${val}. Use 'ko' or 'en'.`, "error")];
+    return [line(lang === "ko" ? `잘못된 언어 설정: ${val}. 'ko' 또는 'en'을 사용하세요.` : `Invalid language: ${val}. Use 'ko' or 'en'.`, "error")];
   }
 
   if (subCmd === "theme") {
@@ -136,7 +136,7 @@ export const settings: CommandHandler = (args, lang) => {
         action: { type: "CHANGE_THEME", payload: val as "dark" | "light" },
       };
     }
-    return [line(`Invalid theme: ${val}. Use 'dark' or 'light'.`, "error")];
+    return [line(lang === "ko" ? `잘못된 테마 설정: ${val}. 'dark' 또는 'light'를 사용하세요.` : `Invalid theme: ${val}. Use 'dark' or 'light'.`, "error")];
   }
 
   if (subCmd === "reset") {
@@ -154,5 +154,5 @@ export const settings: CommandHandler = (args, lang) => {
     };
   }
 
-  return [line(`Unknown settings option: ${subCmd}`, "error")];
+  return [line(lang === "ko" ? `알 수 없는 설정 옵션: ${subCmd}` : `Unknown settings option: ${subCmd}`, "error")];
 };

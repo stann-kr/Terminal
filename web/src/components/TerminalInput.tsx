@@ -110,8 +110,8 @@ export default function TerminalInput({
                   ? "메시지 전송... (/leave 로 세션 종료)"
                   : "broadcast... (/leave to end session)"
                 : language === "ko"
-                  ? "명령어 입력..."
-                  : "enter command..."
+                  ? "'help' 입력 또는 아래 버튼 클릭"
+                  : "type 'help' or tap a button below"
             }
             aria-label="Terminal input"
             className="

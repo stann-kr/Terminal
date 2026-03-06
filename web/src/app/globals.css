@@ -256,6 +256,21 @@
   }
 }
 
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .cursor-blink {
+    animation: none;
+    opacity: 1;
+  }
+  .screen-flicker {
+    animation: none;
+  }
+  .fade-in {
+    animation: none;
+    opacity: 1;
+  }
+}
+
 /* ── Safe area support ── */
 @supports (padding-top: env(safe-area-inset-top)) {
   .terminal-center {

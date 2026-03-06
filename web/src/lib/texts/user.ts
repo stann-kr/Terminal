@@ -289,6 +289,11 @@ export const echoOutput = (text: string): I18nContentItem => ({
   en: [`  ${text}`, ""],
 });
 
+export const commandSuggestion = (suggestion: string): I18nContentItem => ({
+  ko: [["  혹시 '" + suggestion + "' 을(를) 찾으셨나요?", "system"]],
+  en: [["  Did you mean '" + suggestion + "'?", "system"]],
+});
+
 export const commandNotFound = (cmd: string): I18nContentItem => ({
   ko: [
     [

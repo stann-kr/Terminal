@@ -133,7 +133,7 @@ export default function QuickCommands({
             }}
             disabled={!isInputActive}
             className={`
-            px-1 py-0.5 border text-xs font-mono uppercase tracking-widest
+            px-3 py-2 border text-xs font-mono uppercase tracking-widest
             transition-all duration-300 ease-in-out
             focus:outline-none
             disabled:opacity-30 disabled:cursor-not-allowed
