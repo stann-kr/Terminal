@@ -81,10 +81,12 @@ export const wakeSequence: I18nBootLine = {
 export const welcomeMessage: I18nContentItem = {
   ko: [
     ["TERMINAL CORE SYSTEM — 터미널 접근이 허가되었습니다", "success"],
+    ["아래 버튼을 클릭하거나, 명령어를 직접 입력하세요. 'help'를 입력하면 전체 목록을 확인할 수 있습니다.", "system"],
     ["", "divider"],
   ],
   en: [
     ["TERMINAL CORE SYSTEM — ACCESS GRANTED", "success"],
+    ["Click the buttons below or type a command. Type 'help' to see all available commands.", "system"],
     ["", "divider"],
   ],
 };

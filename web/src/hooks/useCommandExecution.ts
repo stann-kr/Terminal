@@ -28,6 +28,27 @@ export function useCommandExecution(
       setCommandHistory((prev) => [...prev, trimmedCmd]);
       setHistoryIndex(-1);
 
+      // 언어 미선택 상태: "1" → EN, "2" → KO 즉시 처리
+      if (language === null) {
+        if (trimmedCmd === "1" || trimmedCmd === "2") {
+          setHistory((prev) => [
+            ...prev,
+            { id: `in-${uid()}`, text: `> ${trimmedCmd}`, type: "input" },
+          ]);
+          handleLanguageSelection(trimmedCmd === "1" ? "en" : "ko");
+          scrollToBottom();
+          return;
+        }
+        // 언어 미선택 상태에서 다른 명령어 입력 시 안내
+        setHistory((prev) => [
+          ...prev,
+          { id: `in-${uid()}`, text: `> ${trimmedCmd}`, type: "input" },
+          { id: `lang-err-${uid()}`, text: "[ SYS ] Select language first: type 1 (EN) or 2 (KO)", type: "system" },
+        ]);
+        scrollToBottom();
+        return;
+      }
+
       if (isLiveMode && activeSessionId) {
         if (trimmedCmd === "/leave") {
           leaveLiveMode();

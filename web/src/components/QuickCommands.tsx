@@ -39,10 +39,20 @@ export default function QuickCommands({
   nodeId,
   isInputVisible,
 }: QuickCommandsProps) {
+  const isLangSelection = displayedCommands.some((c) => c.cmd === "1");
+
   return (
     <div
       className={`quick-cmd-wrapper mt-3 ${!isInputVisible ? "collapsed" : ""}`}
     >
+      {isLangSelection && isInputVisible && (
+        <div
+          className="px-4 mb-2 text-xs font-mono tracking-widest text-[var(--grey-muted)]"
+          style={{ animation: "fadeIn 0.6s ease forwards" }}
+        >
+          ↓ SELECT LANGUAGE / 언어 선택
+        </div>
+      )}
       <div
         className="quick-cmd-inner flex flex-wrap gap-3 px-4"
         style={{

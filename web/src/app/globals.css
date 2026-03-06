@@ -33,7 +33,7 @@
   --grey-surface: #252525;
   --grey-border: #4a5a67;
   --grey-text: #eaefef;
-  --grey-muted: #4a5a67;
+  --grey-muted: #28b0e0; /* 오렌지(#FC6736) 보색 — 시안 */
 }
 
 :root[data-theme="light"] {
@@ -46,7 +46,7 @@
   --grey-surface: #ffffff;
   --grey-border: #d0d0d0;
   --grey-text: #1c1c1c;
-  --grey-muted: #7b7b7b;
+  --grey-muted: #156e8f; /* 오렌지 보색 — 라이트 배경용 어두운 시안 */
 }
 
 @layer base {
