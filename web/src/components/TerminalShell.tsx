@@ -48,8 +48,13 @@ export default function TerminalShell() {
 
   const [quickCmdContext, setQuickCmdContext] = useState<string | null>(null);
 
-  const { isBooting, isInitialized, language, handleLanguageSelection } =
-    useBoot(setHistory, typeOutLines, scrollToBottom, setQuickCmdContext);
+  const {
+    isBooting,
+    isInitialized,
+    isFirstBoot,
+    language,
+    handleLanguageSelection,
+  } = useBoot(setHistory, typeOutLines, scrollToBottom, setQuickCmdContext);
 
   useAnnouncement(language, isBooting, setHistory);
 
@@ -76,6 +81,16 @@ export default function TerminalShell() {
     handleLanguageSelection,
     isAnimatingRef,
   );
+
+  const hasAutoHelpedRef = React.useRef(false);
+
+  React.useEffect(() => {
+    // 최초 부팅(isFirstBoot === true) 시에만 help 실행
+    if (!isBooting && language && !hasAutoHelpedRef.current && isFirstBoot) {
+      hasAutoHelpedRef.current = true;
+      handleCommand("help");
+    }
+  }, [isBooting, language, isFirstBoot, handleCommand]);
 
   const { typeAndExecute } = useTypeAndExecute(
     setInput,
