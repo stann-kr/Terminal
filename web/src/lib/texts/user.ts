@@ -1,31 +1,37 @@
 import { I18nContentItem, ContentItem } from "../types";
+import { textService } from "../services/text-service";
 
-export const status = (timestamp: string, dDay: string): I18nContentItem => ({
-  ko: [
-    ["시스템 가동 상태 보고", "header"],
-    ["TERMINAL [01] : BOOT SEQUENCE", "system"],
-    ["", "divider"],
-    [`카운트다운        [ ${dDay} ]`, "success"],
-    ["터미널 코어       [ 가동 중 ]", "success"],
-    ["라인업            [ 확정 ]", "success"],
-    ["게이트 좌표       [ 확인됨 : Faust, Seoul ]", "success"],
-    "오디오 버퍼       [ 충전 중... ]",
-    `기록 시간         [ ${timestamp} KST ]`,
-    "",
-  ],
-  en: [
-    ["SYSTEM STATUS REPORT", "header"],
-    ["TERMINAL [01] : BOOT SEQUENCE", "system"],
-    ["", "divider"],
-    [`COUNTDOWN         [ ${dDay} ]`, "success"],
-    ["TERMINAL CORE     [ OPERATIONAL ]", "success"],
-    ["LINEUP            [ CONFIRMED   ]", "success"],
-    ["GATE COORDINATES  [ VERIFIED : Faust, Seoul ]", "success"],
-    "AUDIO BUFFER      [ CHARGING... ]",
-    `TIMESTAMP         [ ${timestamp} KST ]`,
-    "",
-  ],
-});
+export const status = (timestamp: string, dDay: string): I18nContentItem => {
+  const ev = textService.getActiveEvent();
+  const title = ev?.title ?? "TERMINAL [01] : BOOT SEQUENCE";
+  const venue = ev?.venue ?? "Faust, Seoul";
+  return {
+    ko: [
+      ["시스템 가동 상태 보고", "header"],
+      [title, "system"],
+      ["", "divider"],
+      [`카운트다운        [ ${dDay} ]`, "success"],
+      ["터미널 코어       [ 가동 중 ]", "success"],
+      ["라인업            [ 확정 ]", "success"],
+      [`게이트 좌표       [ 확인됨 : ${venue} ]`, "success"],
+      "오디오 버퍼       [ 충전 중... ]",
+      `기록 시간         [ ${timestamp} KST ]`,
+      "",
+    ],
+    en: [
+      ["SYSTEM STATUS REPORT", "header"],
+      [title, "system"],
+      ["", "divider"],
+      [`COUNTDOWN         [ ${dDay} ]`, "success"],
+      ["TERMINAL CORE     [ OPERATIONAL ]", "success"],
+      ["LINEUP            [ CONFIRMED   ]", "success"],
+      [`GATE COORDINATES  [ VERIFIED : ${venue} ]`, "success"],
+      "AUDIO BUFFER      [ CHARGING... ]",
+      `TIMESTAMP         [ ${timestamp} KST ]`,
+      "",
+    ],
+  };
+};
 
 export const dateTime = (dateStr: string): I18nContentItem => ({
   ko: [
@@ -359,32 +365,37 @@ export const nameInvalid: I18nContentItem = {
   en: [["[ ERROR ] Name must be between 1 and 20 characters.", "error"], ""],
 };
 
-export const systems = (isAdmin: boolean): I18nContentItem => ({
-  ko: [
-    ["시스템 하드웨어 진단", "header"],
-    ["코어 연산:           [ 온라인 / 안정적 ]", "success"],
-    "대상 라우팅:         [ 경로 탐색 중 -> FAUST_SEOUL ]",
-    ["오디오 엔진:         [ 138.00 BPM으로 고정됨 ]", "success"],
-    ["음향 어레이:         [ 정상 가동 (NOMINAL) ]", "success"],
-    ...(isAdmin
-      ? [
-          [
-            "관리자 세션:         [ 오버라이드 활성화 ]",
-            "success",
-          ] as ContentItem,
-        ]
-      : []),
-    "",
-  ],
-  en: [
-    ["HARDWARE DIAGNOSTICS", "header"],
-    ["Core Logic:      [ONLINE / STABLE]", "success"],
-    "Routing:         [CALCULATING -> FAUST_SEOUL]",
-    ["Audio Engine:    [LOCKED ON 138.00 BPM]", "success"],
-    ["Acoustic Array:  [NOMINAL]", "success"],
-    ...(isAdmin
-      ? [["Admin Session:   [OVERRIDE ACTIVE]", "success"] as ContentItem]
-      : []),
-    "",
-  ],
-});
+export const systems = (isAdmin: boolean): I18nContentItem => {
+  const ev = textService.getActiveEvent();
+  const bpm = ev?.metadata?.bpm ?? "138.00 BPM";
+  const venueSlug = (ev?.venue ?? "FAUST_SEOUL").replace(/,?\s+/g, "_").toUpperCase();
+  return {
+    ko: [
+      ["시스템 하드웨어 진단", "header"],
+      ["코어 연산:           [ 온라인 / 안정적 ]", "success"],
+      `대상 라우팅:         [ 경로 탐색 중 -> ${venueSlug} ]`,
+      [`오디오 엔진:         [ ${bpm}으로 고정됨 ]`, "success"],
+      ["음향 어레이:         [ 정상 가동 (NOMINAL) ]", "success"],
+      ...(isAdmin
+        ? [
+            [
+              "관리자 세션:         [ 오버라이드 활성화 ]",
+              "success",
+            ] as ContentItem,
+          ]
+        : []),
+      "",
+    ],
+    en: [
+      ["HARDWARE DIAGNOSTICS", "header"],
+      ["Core Logic:      [ONLINE / STABLE]", "success"],
+      `Routing:         [CALCULATING -> ${venueSlug}]`,
+      [`Audio Engine:    [LOCKED ON ${bpm}]`, "success"],
+      ["Acoustic Array:  [NOMINAL]", "success"],
+      ...(isAdmin
+        ? [["Admin Session:   [OVERRIDE ACTIVE]", "success"] as ContentItem]
+        : []),
+      "",
+    ],
+  };
+};

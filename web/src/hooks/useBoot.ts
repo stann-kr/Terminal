@@ -7,6 +7,7 @@ import type {
 } from "@/lib/types";
 import { COMMAND_TEXTS } from "@/lib/texts";
 import { uid } from "@/lib/commands/index";
+import { textService } from "@/lib/services/text-service";
 
 export function useBoot(
   setHistory: React.Dispatch<React.SetStateAction<TerminalLine[]>>,
@@ -87,6 +88,11 @@ export function useBoot(
       if (hasBootedRef.current) return;
       hasBootedRef.current = true;
       setIsBooting(true);
+
+      // DB에서 텍스트 일괄 로딩 (최초 1회)
+      if (!textService.isLoaded()) {
+        await textService.initialize();
+      }
 
       const isReturning =
         typeof window !== "undefined" &&

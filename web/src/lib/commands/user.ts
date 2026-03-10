@@ -7,6 +7,16 @@ import {
   bracketNotice,
   line,
 } from "../utils";
+import { textService } from "../services/text-service";
+
+/** whois 입력 → DB sub_key 정규화 매핑 */
+const WHOIS_ALIASES: Record<string, string> = {
+  stann: "stann",
+  stannlumo: "stann",
+  marcus: "marcus",
+  marcusl: "marcus",
+  nusnoom: "nusnoom",
+};
 
 export const whois: CommandHandler = (args, lang) => {
   const raw = args?.[0] ?? "";
@@ -21,6 +31,15 @@ export const whois: CommandHandler = (args, lang) => {
       ),
     ];
   }
+
+  // DB에서 동적으로 whois 텍스트 조회 (별칭 정규화 후 sub_key 매핑)
+  const subKey = WHOIS_ALIASES[target] ?? target;
+  const dbText = textService.getText("whois", subKey);
+  if (dbText) {
+    return [...notice, ...parseContent(dbText, lang)];
+  }
+
+  // DB 미등록 또는 로딩 실패 시 하드코딩 폴백
   if (target === "stann" || target === "stannlumo") {
     return [...notice, ...parseContent(COMMAND_TEXTS.whoisStann(), lang)];
   }
