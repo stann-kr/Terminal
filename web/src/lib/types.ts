@@ -47,6 +47,24 @@ export interface CommandResult {
   action?: CommandAction;
 }
 
+/** transmit 텍스트 구조 — 언어별 다중 블록을 포함하는 비표준 구조 */
+export interface TransmitTextBlock {
+  usage: ContentItem[];
+  usagePrompt: ContentItem[];
+  empty: ContentItem[];
+  loading: ContentItem[];
+  saving: ContentItem[];
+  success: ContentItem[];
+  invalidMsg: ContentItem[];
+  error: ContentItem[];
+  header: (page: number) => ContentItem[];
+}
+
+export interface TransmitTexts {
+  ko: TransmitTextBlock;
+  en: TransmitTextBlock;
+}
+
 export type CommandHandler = (
   args: string[],
   lang: LanguageType,

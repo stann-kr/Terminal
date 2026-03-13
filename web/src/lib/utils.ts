@@ -1,4 +1,4 @@
-import { TerminalLine, LanguageType, I18nContentItem, LineType, BootLine } from "./types";
+import { TerminalLine, LanguageType, I18nContentItem, LineType, BootLine, ContentItem } from "./types";
 
 export const uid = () =>
   `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
@@ -31,6 +31,16 @@ export const parseContent = (
   lang: LanguageType,
 ): TerminalLine[] => {
   return items[lang].map((item) => {
+    if (typeof item === "string") return line(item, "output");
+    return line(item[0], item[1] as LineType, item[2]);
+  });
+};
+
+/** 단일 언어 ContentItem[] 배열을 TerminalLine[]으로 변환 */
+export const parseLines = (
+  items: ContentItem[],
+): TerminalLine[] => {
+  return items.map((item) => {
     if (typeof item === "string") return line(item, "output");
     return line(item[0], item[1] as LineType, item[2]);
   });

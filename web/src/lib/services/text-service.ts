@@ -1,4 +1,11 @@
-import type { I18nContentItem, I18nBootLine, BootLine, ContentItem, LanguageType, LineType } from "../types";
+import type {
+  I18nContentItem,
+  I18nBootLine,
+  BootLine,
+  ContentItem,
+  LanguageType,
+  LineType,
+} from "../types";
 
 /** events 테이블 행 타입 */
 export interface ActiveEvent {
@@ -11,16 +18,14 @@ export interface ActiveEvent {
   metadata: Record<string, string>; // bpm, genre, subtitle 등 유연한 키-값
 }
 
-/** terminal_lines 테이블 행 타입 */
-interface LineRow {
+/** terminal_texts 테이블 행 타입 */
+interface TextRow {
   event_id: string | null;
   category: string;
   sub_key: string | null;
-  lang: LanguageType;
-  line_text: string;
-  line_type: string;
-  url: string | null;
-  sort_order: number;
+  aliases: string[] | null;
+  content_ko: ContentItem[];
+  content_en: ContentItem[];
 }
 
 /** 캐시 키: `category` 또는 `category:sub_key` */
@@ -29,12 +34,14 @@ type CacheKey = string;
 /** 싱글턴 텍스트 서비스 — 앱 초기화 시 1회 일괄 로딩 후 메모리 캐시 */
 class TextService {
   private cache = new Map<CacheKey, I18nContentItem>();
+  /** aliases → 정규화된 sub_key 매핑 (예: 'stannlumo' → 'stann') */
+  private whoisAliases = new Map<string, string>();
   private activeEvent: ActiveEvent | null = null;
   private loaded = false;
 
   /**
    * 앱 초기화 시 1회 호출.
-   * events(status='active') 조회 → terminal_lines 일괄 로딩 → 메모리 캐시.
+   * events(status='active') 조회 → terminal_texts 일괄 로딩 → 메모리 캐시.
    * Supabase 쿼리 2회만 사용.
    */
   async initialize(): Promise<void> {
@@ -55,11 +62,10 @@ class TextService {
       this.activeEvent = eventRow ?? null;
       const activeEventId = this.activeEvent?.id ?? null;
 
-      // 2. terminal_lines 일괄 조회 — 정적(event_id IS NULL) + 활성 이벤트 종속
+      // 2. terminal_texts 일괄 조회 — 정적(event_id IS NULL) + 활성 이벤트 종속
       const query = supabase
-        .from("terminal_lines")
-        .select("event_id, category, sub_key, lang, line_text, line_type, url, sort_order")
-        .order("sort_order", { ascending: true });
+        .from("terminal_texts")
+        .select("event_id, category, sub_key, aliases, content_ko, content_en");
 
       if (activeEventId) {
         query.or(`event_id.is.null,event_id.eq.${activeEventId}`);
@@ -70,28 +76,23 @@ class TextService {
       const { data: rows, error } = await query;
       if (error) throw error;
 
-      // 3. 행을 (category, sub_key) 기준으로 그룹핑 → I18nContentItem 조립
-      for (const row of (rows ?? []) as LineRow[]) {
+      // 3. 캐시에 저장 및 whois aliases 맵 구축
+      for (const row of (rows ?? []) as TextRow[]) {
         const cacheKey: CacheKey = row.sub_key
           ? `${row.category}:${row.sub_key}`
           : row.category;
 
-        if (!this.cache.has(cacheKey)) {
-          this.cache.set(cacheKey, { ko: [], en: [] });
+        this.cache.set(cacheKey, {
+          ko: Array.isArray(row.content_ko) ? row.content_ko : [],
+          en: Array.isArray(row.content_en) ? row.content_en : [],
+        });
+
+        // whois 카테고리: aliases 맵 구축 (별칭 → sub_key)
+        if (row.category === "whois" && row.sub_key && Array.isArray(row.aliases)) {
+          for (const alias of row.aliases) {
+            this.whoisAliases.set(alias.toLowerCase(), row.sub_key);
+          }
         }
-
-        const entry = this.cache.get(cacheKey)!;
-        const lang = row.lang as LanguageType;
-
-        // ContentItem 조립: link 타입이면 url 포함 3-튜플, 나머지는 [text, type] 2-튜플
-        let item: ContentItem;
-        if (row.url) {
-          item = [row.line_text, "link", row.url];
-        } else {
-          item = [row.line_text, row.line_type as LineType];
-        }
-
-        entry[lang].push(item);
       }
 
       this.loaded = true;
@@ -158,6 +159,24 @@ class TextService {
       }
     }
     return targets;
+  }
+
+  /**
+   * whois 입력값을 DB sub_key로 정규화.
+   * aliases 맵에서 먼저 조회하고, 없으면 입력값을 그대로 반환.
+   * 예: 'stannlumo' → 'stann', 'unknown' → 'unknown'
+   */
+  resolveWhoisAlias(input: string): string {
+    return this.whoisAliases.get(input.toLowerCase()) ?? input;
+  }
+
+  /** 캐시 초기화 및 재조회 (admin cache reload) */
+  async reinitialize(): Promise<void> {
+    this.cache.clear();
+    this.whoisAliases.clear();
+    this.activeEvent = null;
+    this.loaded = false;
+    await this.initialize();
   }
 }
 

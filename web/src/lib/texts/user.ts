@@ -3,7 +3,8 @@ import { textService } from "../services/text-service";
 
 export const status = (timestamp: string, dDay: string): I18nContentItem => {
   const ev = textService.getActiveEvent();
-  const title = ev?.title ?? "TERMINAL [01] : BOOT SEQUENCE";
+  const slugSuffix = ev?.slug.split("-")[1] || "";
+  const title = ev?.title ?? (slugSuffix ? `TERMINAL [${slugSuffix}] : BOOT SEQUENCE` : `TERMINAL : BOOT SEQUENCE`);
   const venue = ev?.venue ?? "Faust, Seoul";
   return {
     ko: [
@@ -81,7 +82,7 @@ export const whoami = (
     `고유 ID : ${nodeId}`,
     ...((name ? [`이 름   : ${name}`] : []) as ContentItem[]),
     [
-      "[INFO] 해당 세션은 TERMINAL [01] 메인 시스템에 접속되었습니다.",
+      `[INFO] 해당 세션은 TERMINAL [${textService.getActiveEvent()?.slug.split("-")[1] || "01"}] 메인 시스템에 접속되었습니다.`,
       "system",
     ],
     ...(isAdmin
@@ -103,7 +104,7 @@ export const whoami = (
     `NODE ID : ${nodeId}`,
     ...((name ? [`NAME    : ${name}`] : []) as ContentItem[]),
     [
-      "[INFO] This session is connected to TERMINAL [01] main system.",
+      `[INFO] This session is connected to TERMINAL [${textService.getActiveEvent()?.slug.split("-")[1] || "01"}] main system.`,
       "system",
     ],
     ...(isAdmin
@@ -319,6 +320,55 @@ export const settingsApply: I18nContentItem = {
   ko: [["세팅값 변경 중...", "progress"]],
   en: [["Applying settings...", "progress"]],
 };
+
+export const settingsHelp: I18nContentItem = {
+  ko: [
+    ["TERMINAL SETTINGS", "header"],
+    ["사용법:", "system"],
+    ["  settings lang [ko|en]       - 언어 변경", "output"],
+    ["  settings theme [dark|light] - 테마 변경", "output"],
+    ["  settings reset              - 모든 설정 초기화", "output"],
+    ["", "divider"],
+  ],
+  en: [
+    ["TERMINAL SETTINGS", "header"],
+    ["Usage:", "system"],
+    ["  settings lang [ko|en]       - Change language", "output"],
+    ["  settings theme [dark|light] - Change theme", "output"],
+    ["  settings reset              - Reset all settings", "output"],
+    ["", "divider"],
+  ],
+};
+
+export const settingsLangChanged = (val: string): I18nContentItem => ({
+  ko: [["언어 설정 변경: " + val.toUpperCase(), "success"], ["", "divider"]],
+  en: [["Language set to: " + val.toUpperCase(), "success"], ["", "divider"]],
+});
+
+export const settingsLangInvalid = (val: string): I18nContentItem => ({
+  ko: [[`잘못된 언어 설정: ${val}. 'ko' 또는 'en'을 사용하세요.`, "error"]],
+  en: [[`Invalid language: ${val}. Use 'ko' or 'en'.`, "error"]],
+});
+
+export const settingsThemeChanged = (val: string): I18nContentItem => ({
+  ko: [["테마 설정 변경: " + val.toUpperCase(), "success"], ["", "divider"]],
+  en: [["Theme set to: " + val.toUpperCase(), "success"], ["", "divider"]],
+});
+
+export const settingsThemeInvalid = (val: string): I18nContentItem => ({
+  ko: [[`잘못된 테마 설정: ${val}. 'dark' 또는 'light'를 사용하세요.`, "error"]],
+  en: [[`Invalid theme: ${val}. Use 'dark' or 'light'.`, "error"]],
+});
+
+export const settingsReset: I18nContentItem = {
+  ko: [["모든 설정을 초기화하고 리로드합니다...", "system"]],
+  en: [["Resetting all settings and reloading...", "system"]],
+};
+
+export const settingsUnknown = (subCmd: string): I18nContentItem => ({
+  ko: [[`알 수 없는 설정 옵션: ${subCmd}`, "error"]],
+  en: [[`Unknown settings option: ${subCmd}`, "error"]],
+});
 
 export const nameSet = (name: string): I18nContentItem => ({
   ko: [["이름이 설정되었습니다 : " + name, "success"], ""],

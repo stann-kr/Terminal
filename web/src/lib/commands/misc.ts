@@ -26,6 +26,7 @@ export const time: CommandHandler = (_, lang) =>
 export const ping: CommandHandler = (_, lang) =>
   parseContent(COMMAND_TEXTS.ping, lang);
 
+// `scan`은 `weather`의 별칭 — 동일한 텍스트 블록 사용
 export const scan: CommandHandler = (_, lang) =>
   parseContent(COMMAND_TEXTS.weather, lang);
 

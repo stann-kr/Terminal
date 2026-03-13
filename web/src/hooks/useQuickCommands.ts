@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import type { QuickCommand } from "@/lib/constants";
 import { DEFAULT_QUICK_COMMANDS } from "@/lib/constants";
+import { textService } from "@/lib/services/text-service";
 
 export function useQuickCommands(
   isLiveMode: boolean,
@@ -79,12 +80,19 @@ export function useQuickCommands(
           },
         ];
       } else if (activeCtx === "whois") {
-        commands = [
-          BACK_BTN,
-          { label: "stann", cmd: "whois stann" },
-          { label: "marcus", cmd: "whois marcus" },
-          { label: "nusnoom", cmd: "whois nusnoom" },
-        ];
+        const dynamicTargets = textService.getWhoisTargets();
+        if (dynamicTargets.length > 0) {
+          commands = [
+            BACK_BTN,
+            ...dynamicTargets.map((target) => ({
+              label: target,
+              cmd: `whois ${target}`,
+            })),
+          ];
+        } else {
+          // 데이터가 없는 경우 빈 목록 (또는 back 버튼만)
+          commands = [BACK_BTN];
+        }
       } else if (activeCtx === "sudo") {
         commands = [
           BACK_BTN,
