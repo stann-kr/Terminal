@@ -1,5 +1,5 @@
 import { COMMAND_TEXTS } from "../texts";
-import type { CommandHandler } from "../types";
+import type { CommandHandler, ContentItem, I18nContentItem } from "../types";
 import { parseContent } from "../utils";
 import { supabase } from "../supabase";
 
@@ -248,6 +248,200 @@ export const admin: CommandHandler = async (args, lang) => {
       return parseContent(COMMAND_TEXTS.adminAnnSent, lang);
     } catch (err) {
       console.error("ADMIN_ANN_SEND_FAILED:", err);
+      return parseContent(COMMAND_TEXTS.adminError, lang);
+    }
+  }
+
+  if (sub === "event") {
+    if (sub2 === "list") {
+      try {
+        const { data, error } = await supabase
+          .from("events")
+          .select("id, slug, title, status, date")
+          .order("date", { ascending: false });
+        if (error) throw error;
+        return parseContent(COMMAND_TEXTS.adminEventList(data || []), lang);
+      } catch (err) {
+        console.error("ADMIN_EVENT_LIST_FAILED:", err);
+        return parseContent(COMMAND_TEXTS.adminError, lang);
+      }
+    }
+    if (sub2 === "activate") {
+      const targetSlug = args[2];
+      if (!targetSlug) return parseContent(COMMAND_TEXTS.adminError, lang);
+      try {
+        await supabase
+          .from("events")
+          .update({ status: "archived" })
+          .eq("status", "active");
+        const { error } = await supabase
+          .from("events")
+          .update({ status: "active" })
+          .eq("slug", targetSlug);
+        if (error) throw error;
+        return parseContent(COMMAND_TEXTS.adminEventActivated, lang);
+      } catch (err) {
+        console.error("ADMIN_EVENT_ACTIVATE_FAILED:", err);
+        return parseContent(COMMAND_TEXTS.adminError, lang);
+      }
+    }
+    if (sub2 === "clone") {
+      const srcSlug = args[2];
+      const newSlug = args[3];
+      const newTitleArgs = args.slice(4).join(" ").trim();
+      if (!srcSlug || !newSlug)
+        return parseContent(COMMAND_TEXTS.adminError, lang);
+      try {
+        const { data: srcEvent } = await supabase
+          .from("events")
+          .select()
+          .eq("slug", srcSlug)
+          .single();
+        if (!srcEvent) return parseContent(COMMAND_TEXTS.adminError, lang);
+
+        let { data: newEvent } = await supabase
+          .from("events")
+          .select()
+          .eq("slug", newSlug)
+          .maybeSingle();
+
+        if (!newEvent) {
+          const newTitle = newTitleArgs || `${srcEvent.title} (Clone)`;
+          const { data: inserted, error: insertErr } = await supabase
+            .from("events")
+            .insert({
+              slug: newSlug,
+              title: newTitle,
+              date: srcEvent.date,
+              venue: srcEvent.venue,
+              status: "upcoming",
+              metadata: srcEvent.metadata,
+            })
+            .select()
+            .single();
+          if (insertErr) throw insertErr;
+          newEvent = inserted;
+        }
+
+        const { data: texts } = await supabase
+          .from("terminal_texts")
+          .select()
+          .eq("event_id", srcEvent.id);
+
+        if (texts && texts.length > 0) {
+          const newTexts = texts.map((t) => ({
+            event_id: newEvent.id,
+            category: t.category,
+            sub_key: t.sub_key,
+            description: t.description,
+            content_ko: t.content_ko,
+            content_en: t.content_en,
+            sort_order: t.sort_order,
+          }));
+          const { error: txtErr } = await supabase
+            .from("terminal_texts")
+            .insert(newTexts);
+          if (txtErr) throw txtErr;
+        }
+
+        return parseContent(COMMAND_TEXTS.adminEventCloned, lang);
+      } catch (err) {
+        console.error("ADMIN_EVENT_CLONE_FAILED:", err);
+        return parseContent(COMMAND_TEXTS.adminError, lang);
+      }
+    }
+  }
+
+  if (sub === "text") {
+    if (sub2 === "list") {
+      const showAll = args[2] === "all";
+      try {
+        let query = supabase
+          .from("terminal_texts")
+          .select("category, description, sub_key")
+          .order("category");
+        if (!showAll) {
+          const { data: activeEvent } = await supabase
+            .from("events")
+            .select("id")
+            .eq("status", "active")
+            .maybeSingle();
+          if (activeEvent) {
+            query = query.eq("event_id", activeEvent.id);
+          }
+        }
+        const { data, error } = await query;
+        if (error) throw error;
+        return parseContent(COMMAND_TEXTS.adminTextList(data || []), lang);
+      } catch (err) {
+        console.error("ADMIN_TEXT_LIST_FAILED:", err);
+        return parseContent(COMMAND_TEXTS.adminError, lang);
+      }
+    }
+    if (sub2 === "preview") {
+      const cat = args[2];
+      const subKey = args[3];
+      if (!cat) return parseContent(COMMAND_TEXTS.adminError, lang);
+      try {
+        let query = supabase
+          .from("terminal_texts")
+          .select("content_ko, content_en, event_id")
+          .eq("category", cat);
+        if (subKey) {
+          query = query.eq("sub_key", subKey);
+        } else {
+          query = query.is("sub_key", null);
+        }
+        const { data: activeEvent } = await supabase
+          .from("events")
+          .select("id")
+          .eq("status", "active")
+          .maybeSingle();
+        if (activeEvent) {
+          query = query.or(`event_id.is.null,event_id.eq.${activeEvent.id}`);
+        } else {
+          query = query.is("event_id", null);
+        }
+        const { data, error } = await query;
+        if (error || !data || data.length === 0)
+          return parseContent(COMMAND_TEXTS.adminError, lang);
+
+        let txt = data[0];
+        if (data.length > 1) {
+          const eventTxt = data.find((d) => d.event_id !== null);
+          if (eventTxt) txt = eventTxt;
+        }
+
+        const content = lang === "ko" ? txt.content_ko : txt.content_en;
+
+        const contentItems = Array.isArray(content) ? (content as ContentItem[]) : [];
+        const previewItem: I18nContentItem = {
+          ko: [
+            [`[ PREVIEW ] TEXT: ${cat} ${subKey || ""}`.trim(), "header"],
+            ...contentItems,
+            ["", "output"],
+          ],
+          en: [
+            [`[ PREVIEW ] TEXT: ${cat} ${subKey || ""}`.trim(), "header"],
+            ...contentItems,
+            ["", "output"],
+          ],
+        };
+        return parseContent(previewItem, lang);
+      } catch (err) {
+        console.error("ADMIN_TEXT_PREVIEW_FAILED:", err);
+        return parseContent(COMMAND_TEXTS.adminError, lang);
+      }
+    }
+  }
+
+  if (sub === "cache" && sub2 === "reload") {
+    try {
+      const { textService } = await import("../services/text-service");
+      await textService.reinitialize();
+      return parseContent(COMMAND_TEXTS.adminCacheReloaded, lang);
+    } catch (err) {
+      console.error("ADMIN_CACHE_RELOAD_FAILED:", err);
       return parseContent(COMMAND_TEXTS.adminError, lang);
     }
   }

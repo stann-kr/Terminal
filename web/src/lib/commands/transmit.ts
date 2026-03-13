@@ -1,7 +1,7 @@
 import { COMMAND_TEXTS } from "../texts";
 import type { CommandHandler, TerminalLine } from "../types";
 import {
-  parseContent,
+  parseLines,
   stripBrackets,
   hasBrackets,
   bracketNotice,
@@ -40,7 +40,7 @@ export const transmit: CommandHandler = async (args, lang) => {
     }
 
     if (!message) {
-      return parseContent({ [lang]: texts.invalidMsg } as any, lang);
+      return parseLines(texts.invalidMsg);
     }
 
     let device_id = null;
@@ -58,13 +58,10 @@ export const transmit: CommandHandler = async (args, lang) => {
 
       if (error) throw error;
 
-      return [
-        ...notice,
-        ...parseContent({ [lang]: texts.success } as any, lang),
-      ];
+      return [...notice, ...parseLines(texts.success)];
     } catch (err) {
       console.error(err);
-      return [...notice, ...parseContent({ [lang]: texts.error } as any, lang)];
+      return [...notice, ...parseLines(texts.error)];
     }
   }
 
@@ -80,20 +77,17 @@ export const transmit: CommandHandler = async (args, lang) => {
 
     if (error) throw error;
 
-    const headerLines = parseContent(
-      { [lang]: texts.header(page) } as any,
-      lang,
-    );
+    const headerLines = parseLines(texts.header(page));
 
     if (!data || data.length === 0) {
       return [
         ...headerLines,
-        ...parseContent({ [lang]: texts.empty } as any, lang),
-        ...parseContent({ [lang]: texts.usagePrompt } as any, lang),
+        ...parseLines(texts.empty),
+        ...parseLines(texts.usagePrompt),
       ];
     }
 
-    const listLines = data.map((entry: any) =>
+    const listLines = data.map((entry: { created_at: string; name: string; message: string }) =>
       line(
         `[${fmtKstFull(new Date(entry.created_at))}] ${entry.name}: ${entry.message}`,
         "output",
@@ -103,10 +97,10 @@ export const transmit: CommandHandler = async (args, lang) => {
     return [
       ...headerLines,
       ...listLines,
-      ...parseContent({ [lang]: texts.usagePrompt } as any, lang),
+      ...parseLines(texts.usagePrompt),
     ];
   } catch (err) {
     console.error(err);
-    return parseContent({ [lang]: texts.error } as any, lang);
+    return parseLines(texts.error);
   }
 };

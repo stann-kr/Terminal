@@ -161,12 +161,6 @@ export function useCommandExecution(
           handleCommand("live --node");
         } else if (flow === "transmit") {
           setQuickCmdContext("transmit");
-          if (
-            typeof window !== "undefined" &&
-            window.matchMedia("(hover: hover) and (pointer: fine)").matches
-          ) {
-            // let caller handle focus or it can be removed
-          }
         }
       }
 

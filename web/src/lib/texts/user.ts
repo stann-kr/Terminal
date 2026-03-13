@@ -1,31 +1,38 @@
 import { I18nContentItem, ContentItem } from "../types";
+import { textService } from "../services/text-service";
 
-export const status = (timestamp: string, dDay: string): I18nContentItem => ({
-  ko: [
-    ["시스템 가동 상태 보고", "header"],
-    ["TERMINAL [01] : BOOT SEQUENCE", "system"],
-    ["", "divider"],
-    [`카운트다운        [ ${dDay} ]`, "success"],
-    ["터미널 코어       [ 가동 중 ]", "success"],
-    ["라인업            [ 확정 ]", "success"],
-    ["게이트 좌표       [ 확인됨 : Faust, Seoul ]", "success"],
-    "오디오 버퍼       [ 충전 중... ]",
-    `기록 시간         [ ${timestamp} KST ]`,
-    "",
-  ],
-  en: [
-    ["SYSTEM STATUS REPORT", "header"],
-    ["TERMINAL [01] : BOOT SEQUENCE", "system"],
-    ["", "divider"],
-    [`COUNTDOWN         [ ${dDay} ]`, "success"],
-    ["TERMINAL CORE     [ OPERATIONAL ]", "success"],
-    ["LINEUP            [ CONFIRMED   ]", "success"],
-    ["GATE COORDINATES  [ VERIFIED : Faust, Seoul ]", "success"],
-    "AUDIO BUFFER      [ CHARGING... ]",
-    `TIMESTAMP         [ ${timestamp} KST ]`,
-    "",
-  ],
-});
+export const status = (timestamp: string, dDay: string): I18nContentItem => {
+  const ev = textService.getActiveEvent();
+  const slugSuffix = ev?.slug.split("-")[1] || "";
+  const title = ev?.title ?? (slugSuffix ? `TERMINAL [${slugSuffix}] : BOOT SEQUENCE` : `TERMINAL : BOOT SEQUENCE`);
+  const venue = ev?.venue ?? "Faust, Seoul";
+  return {
+    ko: [
+      ["시스템 가동 상태 보고", "header"],
+      [title, "system"],
+      ["", "divider"],
+      [`카운트다운        [ ${dDay} ]`, "success"],
+      ["터미널 코어       [ 가동 중 ]", "success"],
+      ["라인업            [ 확정 ]", "success"],
+      [`게이트 좌표       [ 확인됨 : ${venue} ]`, "success"],
+      "오디오 버퍼       [ 충전 중... ]",
+      `기록 시간         [ ${timestamp} KST ]`,
+      "",
+    ],
+    en: [
+      ["SYSTEM STATUS REPORT", "header"],
+      [title, "system"],
+      ["", "divider"],
+      [`COUNTDOWN         [ ${dDay} ]`, "success"],
+      ["TERMINAL CORE     [ OPERATIONAL ]", "success"],
+      ["LINEUP            [ CONFIRMED   ]", "success"],
+      [`GATE COORDINATES  [ VERIFIED : ${venue} ]`, "success"],
+      "AUDIO BUFFER      [ CHARGING... ]",
+      `TIMESTAMP         [ ${timestamp} KST ]`,
+      "",
+    ],
+  };
+};
 
 export const dateTime = (dateStr: string): I18nContentItem => ({
   ko: [
@@ -75,7 +82,7 @@ export const whoami = (
     `고유 ID : ${nodeId}`,
     ...((name ? [`이 름   : ${name}`] : []) as ContentItem[]),
     [
-      "[INFO] 해당 세션은 TERMINAL [01] 메인 시스템에 접속되었습니다.",
+      `[INFO] 해당 세션은 TERMINAL [${textService.getActiveEvent()?.slug.split("-")[1] || "01"}] 메인 시스템에 접속되었습니다.`,
       "system",
     ],
     ...(isAdmin
@@ -97,7 +104,7 @@ export const whoami = (
     `NODE ID : ${nodeId}`,
     ...((name ? [`NAME    : ${name}`] : []) as ContentItem[]),
     [
-      "[INFO] This session is connected to TERMINAL [01] main system.",
+      `[INFO] This session is connected to TERMINAL [${textService.getActiveEvent()?.slug.split("-")[1] || "01"}] main system.`,
       "system",
     ],
     ...(isAdmin
@@ -314,6 +321,55 @@ export const settingsApply: I18nContentItem = {
   en: [["Applying settings...", "progress"]],
 };
 
+export const settingsHelp: I18nContentItem = {
+  ko: [
+    ["TERMINAL SETTINGS", "header"],
+    ["사용법:", "system"],
+    ["  settings lang [ko|en]       - 언어 변경", "output"],
+    ["  settings theme [dark|light] - 테마 변경", "output"],
+    ["  settings reset              - 모든 설정 초기화", "output"],
+    ["", "divider"],
+  ],
+  en: [
+    ["TERMINAL SETTINGS", "header"],
+    ["Usage:", "system"],
+    ["  settings lang [ko|en]       - Change language", "output"],
+    ["  settings theme [dark|light] - Change theme", "output"],
+    ["  settings reset              - Reset all settings", "output"],
+    ["", "divider"],
+  ],
+};
+
+export const settingsLangChanged = (val: string): I18nContentItem => ({
+  ko: [["언어 설정 변경: " + val.toUpperCase(), "success"], ["", "divider"]],
+  en: [["Language set to: " + val.toUpperCase(), "success"], ["", "divider"]],
+});
+
+export const settingsLangInvalid = (val: string): I18nContentItem => ({
+  ko: [[`잘못된 언어 설정: ${val}. 'ko' 또는 'en'을 사용하세요.`, "error"]],
+  en: [[`Invalid language: ${val}. Use 'ko' or 'en'.`, "error"]],
+});
+
+export const settingsThemeChanged = (val: string): I18nContentItem => ({
+  ko: [["테마 설정 변경: " + val.toUpperCase(), "success"], ["", "divider"]],
+  en: [["Theme set to: " + val.toUpperCase(), "success"], ["", "divider"]],
+});
+
+export const settingsThemeInvalid = (val: string): I18nContentItem => ({
+  ko: [[`잘못된 테마 설정: ${val}. 'dark' 또는 'light'를 사용하세요.`, "error"]],
+  en: [[`Invalid theme: ${val}. Use 'dark' or 'light'.`, "error"]],
+});
+
+export const settingsReset: I18nContentItem = {
+  ko: [["모든 설정을 초기화하고 리로드합니다...", "system"]],
+  en: [["Resetting all settings and reloading...", "system"]],
+};
+
+export const settingsUnknown = (subCmd: string): I18nContentItem => ({
+  ko: [[`알 수 없는 설정 옵션: ${subCmd}`, "error"]],
+  en: [[`Unknown settings option: ${subCmd}`, "error"]],
+});
+
 export const nameSet = (name: string): I18nContentItem => ({
   ko: [["이름이 설정되었습니다 : " + name, "success"], ""],
   en: [["Name set: " + name, "success"], ""],
@@ -359,32 +415,37 @@ export const nameInvalid: I18nContentItem = {
   en: [["[ ERROR ] Name must be between 1 and 20 characters.", "error"], ""],
 };
 
-export const systems = (isAdmin: boolean): I18nContentItem => ({
-  ko: [
-    ["시스템 하드웨어 진단", "header"],
-    ["코어 연산:           [ 온라인 / 안정적 ]", "success"],
-    "대상 라우팅:         [ 경로 탐색 중 -> FAUST_SEOUL ]",
-    ["오디오 엔진:         [ 138.00 BPM으로 고정됨 ]", "success"],
-    ["음향 어레이:         [ 정상 가동 (NOMINAL) ]", "success"],
-    ...(isAdmin
-      ? [
-          [
-            "관리자 세션:         [ 오버라이드 활성화 ]",
-            "success",
-          ] as ContentItem,
-        ]
-      : []),
-    "",
-  ],
-  en: [
-    ["HARDWARE DIAGNOSTICS", "header"],
-    ["Core Logic:      [ONLINE / STABLE]", "success"],
-    "Routing:         [CALCULATING -> FAUST_SEOUL]",
-    ["Audio Engine:    [LOCKED ON 138.00 BPM]", "success"],
-    ["Acoustic Array:  [NOMINAL]", "success"],
-    ...(isAdmin
-      ? [["Admin Session:   [OVERRIDE ACTIVE]", "success"] as ContentItem]
-      : []),
-    "",
-  ],
-});
+export const systems = (isAdmin: boolean): I18nContentItem => {
+  const ev = textService.getActiveEvent();
+  const bpm = ev?.metadata?.bpm ?? "138.00 BPM";
+  const venueSlug = (ev?.venue ?? "FAUST_SEOUL").replace(/,?\s+/g, "_").toUpperCase();
+  return {
+    ko: [
+      ["시스템 하드웨어 진단", "header"],
+      ["코어 연산:           [ 온라인 / 안정적 ]", "success"],
+      `대상 라우팅:         [ 경로 탐색 중 -> ${venueSlug} ]`,
+      [`오디오 엔진:         [ ${bpm}으로 고정됨 ]`, "success"],
+      ["음향 어레이:         [ 정상 가동 (NOMINAL) ]", "success"],
+      ...(isAdmin
+        ? [
+            [
+              "관리자 세션:         [ 오버라이드 활성화 ]",
+              "success",
+            ] as ContentItem,
+          ]
+        : []),
+      "",
+    ],
+    en: [
+      ["HARDWARE DIAGNOSTICS", "header"],
+      ["Core Logic:      [ONLINE / STABLE]", "success"],
+      `Routing:         [CALCULATING -> ${venueSlug}]`,
+      [`Audio Engine:    [LOCKED ON ${bpm}]`, "success"],
+      ["Acoustic Array:  [NOMINAL]", "success"],
+      ...(isAdmin
+        ? [["Admin Session:   [OVERRIDE ACTIVE]", "success"] as ContentItem]
+        : []),
+      "",
+    ],
+  };
+};

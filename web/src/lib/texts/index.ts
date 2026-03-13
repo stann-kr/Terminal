@@ -1,17 +1,17 @@
 import {
-  help,
-  commands,
-  about,
-  lineup,
-  voyage,
-  gate,
-  event,
-  link,
-  ping,
-  weather,
-  matrix,
-  history,
-  historyAdmin,
+  help as helpFallback,
+  commands as commandsFallback,
+  about as aboutFallback,
+  lineup as lineupFallback,
+  voyage as voyageFallback,
+  gate as gateFallback,
+  event as eventFallback,
+  link as linkFallback,
+  ping as pingFallback,
+  weather as weatherFallback,
+  matrix as matrixFallback,
+  history as historyFallback,
+  historyAdmin as historyAdminFallback,
 } from "./static";
 import {
   bootSequence,
@@ -35,6 +35,13 @@ import {
   commandNotFound,
   commandSuggestion,
   settingsApply,
+  settingsHelp,
+  settingsLangChanged,
+  settingsLangInvalid,
+  settingsThemeChanged,
+  settingsThemeInvalid,
+  settingsReset,
+  settingsUnknown,
   nameSet,
   nameCurrent,
   nameCleared,
@@ -53,7 +60,6 @@ import {
 import {
   adminDenied,
   adminHelp,
-  adminUnlocked,
   adminLiveOpened,
   adminLiveScheduled,
   adminLiveClosed,
@@ -68,27 +74,70 @@ import {
   adminAnnSent,
   adminAnnCleared,
   announcementBanner,
+  adminEventList,
+  adminEventActivated,
+  adminEventCloned,
+  adminTextList,
+  adminCacheReloaded,
 } from "./admin";
 import { transmit } from "./transmit";
+import { textService } from "../services/text-service";
 
 export const COMMAND_TEXTS = {
-  help,
-  commands,
-  about,
-  lineup,
-  voyage,
-  gate,
-  event,
-  link,
-  ping,
-  weather,
-  matrix,
-  history,
-  historyAdmin,
-  bootSequence,
-  wakeSequence,
-  welcomeMessage,
-  resumeMessage,
+  // ── DB getter (로딩 성공 시 DB 값 우선, 실패 시 폴백) ──
+  get help() {
+    return textService.getText("help") ?? helpFallback;
+  },
+  get commands() {
+    return textService.getText("commands") ?? commandsFallback;
+  },
+  get about() {
+    return textService.getText("about") ?? aboutFallback;
+  },
+  get lineup() {
+    return textService.getText("lineup") ?? lineupFallback;
+  },
+  get voyage() {
+    return textService.getText("voyage") ?? voyageFallback;
+  },
+  get gate() {
+    return textService.getText("gate") ?? gateFallback;
+  },
+  get event() {
+    return textService.getText("event") ?? eventFallback;
+  },
+  get link() {
+    return textService.getText("link") ?? linkFallback;
+  },
+  get ping() {
+    return textService.getText("ping") ?? pingFallback;
+  },
+  get weather() {
+    return textService.getText("weather") ?? weatherFallback;
+  },
+  get matrix() {
+    return textService.getText("matrix") ?? matrixFallback;
+  },
+  get history() {
+    return textService.getText("history") ?? historyFallback;
+  },
+  get historyAdmin() {
+    return textService.getText("historyAdmin") ?? historyAdminFallback;
+  },
+  get bootSequence() {
+    return textService.getBootSequence() ?? bootSequence;
+  },
+  get wakeSequence() {
+    return textService.getWakeSequence() ?? wakeSequence;
+  },
+  get welcomeMessage() {
+    return textService.getText("welcome") ?? welcomeMessage;
+  },
+  get resumeMessage() {
+    return textService.getText("resume") ?? resumeMessage;
+  },
+
+  // ── 코드 유지 (함수형 / 런타임 인자 필요) ──
   status,
   dateTime,
   swearWord,
@@ -104,6 +153,13 @@ export const COMMAND_TEXTS = {
   commandNotFound,
   commandSuggestion,
   settingsApply,
+  settingsHelp,
+  settingsLangChanged,
+  settingsLangInvalid,
+  settingsThemeChanged,
+  settingsThemeInvalid,
+  settingsReset,
+  settingsUnknown,
   nameSet,
   nameCurrent,
   nameCleared,
@@ -118,7 +174,6 @@ export const COMMAND_TEXTS = {
   liveError,
   adminDenied,
   adminHelp,
-  adminUnlocked,
   adminLiveOpened,
   adminLiveScheduled,
   adminLiveClosed,
@@ -133,5 +188,10 @@ export const COMMAND_TEXTS = {
   adminAnnSent,
   adminAnnCleared,
   announcementBanner,
+  adminEventList,
+  adminEventActivated,
+  adminEventCloned,
+  adminTextList,
+  adminCacheReloaded,
   transmit,
 };

@@ -7,6 +7,7 @@ import {
   bracketNotice,
   line,
 } from "../utils";
+import { textService } from "../services/text-service";
 
 export const whois: CommandHandler = (args, lang) => {
   const raw = args?.[0] ?? "";
@@ -21,13 +22,22 @@ export const whois: CommandHandler = (args, lang) => {
       ),
     ];
   }
-  if (target === "stann" || target === "stannlumo") {
+
+  // DB aliases 맵으로 sub_key 정규화 후 텍스트 조회
+  const subKey = textService.resolveWhoisAlias(target);
+  const dbText = textService.getText("whois", subKey);
+  if (dbText) {
+    return [...notice, ...parseContent(dbText, lang)];
+  }
+
+  // DB 미등록 또는 로딩 실패 시 하드코딩 폴백 (subKey 기준)
+  if (subKey === "stann") {
     return [...notice, ...parseContent(COMMAND_TEXTS.whoisStann(), lang)];
   }
-  if (target === "marcus" || target === "marcusl") {
+  if (subKey === "marcus") {
     return [...notice, ...parseContent(COMMAND_TEXTS.whoisMarcus(), lang)];
   }
-  if (target === "nusnoom") {
+  if (subKey === "nusnoom") {
     return [...notice, ...parseContent(COMMAND_TEXTS.whoisNusnoom(), lang)];
   }
   return [...notice, ...parseContent(COMMAND_TEXTS.whoisUnknown(target), lang)];
@@ -90,24 +100,7 @@ export const echo: CommandHandler = (args, lang) => {
 
 export const settings: CommandHandler = (args, lang) => {
   if (!args || args.length === 0) {
-    if (lang === "ko") {
-      return [
-        line("TERMINAL SETTINGS", "header"),
-        line("사용법:", "system"),
-        line("  settings lang [ko|en]      - 언어 변경", "output"),
-        line("  settings theme [dark|light] - 테마 변경", "output"),
-        line("  settings reset              - 모든 설정 초기화", "output"),
-        line("", "divider"),
-      ];
-    }
-    return [
-      line("TERMINAL SETTINGS", "header"),
-      line("Usage:", "system"),
-      line("  settings lang [ko|en]      - Change language", "output"),
-      line("  settings theme [dark|light] - Change theme", "output"),
-      line("  settings reset              - Reset all settings", "output"),
-      line("", "divider"),
-    ];
+    return parseContent(COMMAND_TEXTS.settingsHelp, lang);
   }
 
   const subCmd = args[0]?.toLowerCase();
@@ -116,43 +109,30 @@ export const settings: CommandHandler = (args, lang) => {
   if (subCmd === "lang") {
     if (val === "ko" || val === "en") {
       return {
-        lines: [
-          line(`Language set to: ${val.toUpperCase()}`, "success"),
-          line("", "divider"),
-        ],
+        lines: parseContent(COMMAND_TEXTS.settingsLangChanged(val), lang),
         action: { type: "CHANGE_LANG", payload: val as "ko" | "en" },
       };
     }
-    return [line(lang === "ko" ? `잘못된 언어 설정: ${val}. 'ko' 또는 'en'을 사용하세요.` : `Invalid language: ${val}. Use 'ko' or 'en'.`, "error")];
+    return parseContent(COMMAND_TEXTS.settingsLangInvalid(val ?? ""), lang);
   }
 
   if (subCmd === "theme") {
     if (val === "dark" || val === "light") {
       return {
-        lines: [
-          line(`Theme set to: ${val.toUpperCase()}`, "success"),
-          line("", "divider"),
-        ],
+        lines: parseContent(COMMAND_TEXTS.settingsThemeChanged(val), lang),
         action: { type: "CHANGE_THEME", payload: val as "dark" | "light" },
       };
     }
-    return [line(lang === "ko" ? `잘못된 테마 설정: ${val}. 'dark' 또는 'light'를 사용하세요.` : `Invalid theme: ${val}. Use 'dark' or 'light'.`, "error")];
+    return parseContent(COMMAND_TEXTS.settingsThemeInvalid(val ?? ""), lang);
   }
 
   if (subCmd === "reset") {
     return {
-      lines: [
-        line(
-          lang === "ko"
-            ? "모든 설정을 초기화하고 리로드합니다..."
-            : "Resetting all settings and reloading...",
-          "system",
-        ),
-      ],
+      lines: parseContent(COMMAND_TEXTS.settingsReset, lang),
       action: { type: "RESET" },
       shouldClear: true,
     };
   }
 
-  return [line(lang === "ko" ? `알 수 없는 설정 옵션: ${subCmd}` : `Unknown settings option: ${subCmd}`, "error")];
+  return parseContent(COMMAND_TEXTS.settingsUnknown(subCmd), lang);
 };

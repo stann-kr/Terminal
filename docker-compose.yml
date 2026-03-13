@@ -7,7 +7,7 @@ services:
     volumes:
       - ./web:/app
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=${NODE_ENV:-development}
       - WATCHPACK_POLLING=true
     env_file:
       - .env

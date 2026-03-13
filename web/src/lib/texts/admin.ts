@@ -31,6 +31,12 @@ export const adminHelp: I18nContentItem = {
     "admin live clear                    — 활성 세션 메시지 삭제",
     "admin ann <메시지>                  — 전체 공지 브로드캐스트",
     "admin ann clear                     — 공지 해제",
+    "admin event list                    — 전체 이벤트 목록",
+    "admin event activate <slug>         — 특정 이벤트 활성화",
+    "admin event clone <old> <new> [명]  — 이벤트 및 텍스트 복제",
+    "admin text list [all]               — 텍스트 목록 (all: 전체)",
+    "admin text preview <cat> [sub]      — 텍스트 미리보기",
+    "admin cache reload                  — 내부 DB 캐시 갱신",
     "",
   ],
   en: [
@@ -49,13 +55,14 @@ export const adminHelp: I18nContentItem = {
     "admin live clear                     — Clear active session messages",
     "admin ann <message>                  — Broadcast announcement",
     "admin ann clear                      — Clear announcement",
+    "admin event list                     — List all events",
+    "admin event activate <slug>          — Activate specific event",
+    "admin event clone <old> <new> [명]   — Clone event and texts",
+    "admin text list [all]                — List texts (all: include static)",
+    "admin text preview <cat> [sub]       — Preview text content",
+    "admin cache reload                   — Reload internal DB cache",
     "",
   ],
-};
-
-export const adminUnlocked: I18nContentItem = {
-  ko: [["[ ADMIN ] 인증 완료. 관리자 모드 활성화.", "success"], ""],
-  en: [["[ ADMIN ] Authenticated. Admin mode active.", "success"], ""],
 };
 
 export const adminLiveOpened: I18nContentItem = {
@@ -175,3 +182,76 @@ export const announcementBanner = (msg: string): I18nContentItem => ({
     ["", "divider"],
   ],
 });
+
+export const adminEventList = (
+  events: Array<{
+    id: string;
+    slug: string;
+    title: string;
+    status: string;
+    date: string;
+  }>,
+): I18nContentItem => {
+  const rows = events.map((e) => {
+    return [
+      `  ${e.status.toUpperCase().padEnd(10)} ${e.slug.padEnd(15)} ${e.title} (${e.date})`,
+      e.status === "active" ? "success" : "output",
+    ] as [string, LineType];
+  });
+  return {
+    ko: [["[ ADMIN ] 이벤트 목록", "header"], ...rows, ""],
+    en: [["[ ADMIN ] EVENT LIST", "header"], ...rows, ""],
+  };
+};
+
+export const adminEventActivated: I18nContentItem = {
+  ko: [
+    [
+      "[ OK ] 이벤트가 활성화되었습니다. (적용하려면 cache reload 필요할 수 있음)",
+      "success",
+    ],
+    "",
+  ],
+  en: [
+    ["[ OK ] Event activated. (May require cache reload to apply)", "success"],
+    "",
+  ],
+};
+
+export const adminEventCloned: I18nContentItem = {
+  ko: [["[ OK ] 이벤트 및 텍스트 복제가 완료되었습니다.", "success"], ""],
+  en: [["[ OK ] Event and texts cloned.", "success"], ""],
+};
+
+export const adminTextList = (
+  texts: Array<{
+    category: string;
+    description: string | null;
+    sub_key: string | null;
+  }>,
+): I18nContentItem => {
+  const rows = texts.map((t) => {
+    const key = t.sub_key ? `${t.category} [${t.sub_key}]` : t.category;
+    return [`  ${key.padEnd(20)} ${t.description || ""}`, "output"] as [
+      string,
+      LineType,
+    ];
+  });
+  return {
+    ko: [["[ ADMIN ] 텍스트 카테고리 목록", "header"], ...rows, ""],
+    en: [["[ ADMIN ] TEXT CATEGORIES", "header"], ...rows, ""],
+  };
+};
+
+export const adminCacheReloaded: I18nContentItem = {
+  ko: [
+    ["[ OK ] 로컬 DB 캐시를 갱신했습니다.", "success"],
+    "⚠️ (주의) 현재 접속한 관리자의 터미널에만 즉시 반영되며, 방문자들은 재부팅/새로고침해야 변경사항이 나타납니다.",
+    "",
+  ],
+  en: [
+    ["[ OK ] Local DB cache reloaded.", "success"],
+    "⚠️ (Note) Changes are reflected immediately only on this admin terminal. Visitors must reload/reboot to see updates.",
+    "",
+  ],
+};
