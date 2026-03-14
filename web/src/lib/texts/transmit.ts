@@ -1,6 +1,6 @@
-import { ContentItem } from "../types";
+import { ContentItem, TransmitTexts } from "../types";
 
-export const transmit = {
+export const transmit: TransmitTexts = {
   ko: {
     usage: [
       ["시스템 통신망(TRANSMISSION) 사용법", "header"],

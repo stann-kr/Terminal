@@ -11,6 +11,7 @@ import { useBoot } from "@/hooks/useBoot";
 import { useLiveChat } from "@/hooks/useLiveChat";
 import { useAnnouncement } from "@/hooks/useAnnouncement";
 import { useQuickCommands } from "@/hooks/useQuickCommands";
+import { textService } from "@/lib/services/text-service";
 import { useCommandExecution } from "@/hooks/useCommandExecution";
 import { useTypeAndExecute } from "@/hooks/useTypeAndExecute";
 import TerminalHistory from "./TerminalHistory";
@@ -136,7 +137,12 @@ export default function TerminalShell() {
         .trimStart()
         .toLowerCase();
       if (!val) return;
-      const match = AVAILABLE_COMMANDS.find((c) => c.startsWith(val));
+
+      // 1. 기본 명령어 + 동적 whois 대상 합치기
+      const dynamicWhois = textService.getWhoisTargets().map(t => `whois ${t}`);
+      const allCommands = [...AVAILABLE_COMMANDS, ...dynamicWhois];
+
+      const match = allCommands.find((c) => c.startsWith(val));
       if (match && match !== val) {
         setInput(match);
         setCursorPosition(match.length);

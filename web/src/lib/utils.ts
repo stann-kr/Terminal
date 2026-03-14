@@ -1,4 +1,4 @@
-import { TerminalLine, LanguageType, I18nContentItem, LineType } from "./types";
+import { TerminalLine, LanguageType, I18nContentItem, LineType, BootLine, ContentItem } from "./types";
 
 export const uid = () =>
   `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
@@ -31,6 +31,16 @@ export const parseContent = (
   lang: LanguageType,
 ): TerminalLine[] => {
   return items[lang].map((item) => {
+    if (typeof item === "string") return line(item, "output");
+    return line(item[0], item[1] as LineType, item[2]);
+  });
+};
+
+/** 단일 언어 ContentItem[] 배열을 TerminalLine[]으로 변환 */
+export const parseLines = (
+  items: ContentItem[],
+): TerminalLine[] => {
+  return items.map((item) => {
     if (typeof item === "string") return line(item, "output");
     return line(item[0], item[1] as LineType, item[2]);
   });
@@ -82,6 +92,18 @@ export const levenshteinDistance = (a: string, b: string): number => {
   }
   return dp[a.length][b.length];
 };
+
+/**
+ * DB에서 로딩한 BootLine 객체 배열({text, type})을 BootLine[] 타입으로 변환.
+ * content_ko/en 필드가 jsonb [{text, type}] 형식으로 저장되어 있으므로 타입 단언으로 처리.
+ */
+export const contentToBootLine = (items: unknown[]): BootLine[] =>
+  items.map((item) => {
+    if (typeof item === "object" && item !== null && "text" in item && "type" in item) {
+      return { text: String((item as Record<string, unknown>).text), type: (item as Record<string, unknown>).type as LineType };
+    }
+    return { text: String(item), type: "output" as LineType };
+  });
 
 export const findSimilarCommand = (
   input: string,
