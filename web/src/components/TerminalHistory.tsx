@@ -1,6 +1,5 @@
 import React from "react";
 import type { TerminalLine } from "@/lib/types";
-import Logo from "./Logo";
 import { LINE_COLOR } from "@/lib/constants";
 
 interface TerminalHistoryProps {
@@ -18,10 +17,6 @@ export default function TerminalHistory({
 }: TerminalHistoryProps) {
   return (
     <>
-      <div className="shrink-0 fade-in">
-        <Logo />
-      </div>
-
       <div
         ref={historyContainerRef}
         className="flex-1 overflow-y-auto space-y-1 mb-2 mt-2"
@@ -49,7 +44,28 @@ export default function TerminalHistory({
           }
 
           if (termLine.type === "button") {
-            return null; // 버튼은 TerminalShell 하단에 분리 렌더링
+            return (
+              <div key={termLine.id} className="line-enter pl-4 mt-1 mb-1">
+                <span className="inline-block min-w-[140px] align-middle">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onButtonClick &&
+                      termLine.cmd &&
+                      onButtonClick(termLine.cmd)
+                    }
+                    className="inline-btn text-left"
+                  >
+                    {termLine.text}
+                  </button>
+                </span>
+                {termLine.desc && (
+                  <span className="text-[var(--grey-text)] text-[0.85rem] opacity-70 inline-block align-middle ml-2 sm:ml-4">
+                    - {termLine.desc}
+                  </span>
+                )}
+              </div>
+            );
           }
 
           if (termLine.type === "header") {
@@ -68,25 +84,31 @@ export default function TerminalHistory({
             return (
               <div
                 key={termLine.id}
-                className="border-t border-[var(--grey-border)] my-2 opacity-50 w-[95%]"
+                className="border-t border-dashed border-[var(--panel-border)] my-2 opacity-70 w-[95%]"
               />
             );
           }
 
           const isInput = termLine.type === "input";
-          const hasAnim = termLine.type !== "output";
+          const isOutput = termLine.type === "output";
+          const hasAnim = !isOutput;
+
+          // output: CSS [data-line-type="output"]가 padding-left: 2rem + >> prefix 처리
+          // input: 상단 마진만
+          // 나머지: pl-4
+          const spacingClass = isInput ? "mt-6 mb-1" : isOutput ? "" : "pl-4";
 
           return (
             <div
               key={termLine.id}
               data-line-type={termLine.type}
-              className={`text-sm leading-relaxed whitespace-pre-wrap break-words ${LINE_COLOR[termLine.type as keyof typeof LINE_COLOR]} ${hasAnim ? "line-enter" : ""} ${isInput ? "mt-6 mb-1" : "pl-4"}`}
+              className={`text-sm leading-relaxed whitespace-pre-wrap break-words ${LINE_COLOR[termLine.type as keyof typeof LINE_COLOR]} ${hasAnim ? "line-enter" : ""} ${spacingClass}`}
             >
               {termLine.text}
             </div>
           );
         })}
-        <div ref={bottomRef} aria-hidden="true" />
+        <div ref={bottomRef} className="h-[2rem] w-full shrink-0" aria-hidden="true" />
       </div>
     </>
   );

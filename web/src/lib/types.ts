@@ -3,6 +3,7 @@ export type LanguageType = "ko" | "en";
 export type ViewType =
   | "boot"
   | "home"
+  | "about"
   | "lineup"
   | "gate"
   | "whois"
@@ -45,6 +46,7 @@ export interface TerminalLine {
   type: LineType;
   url?: string;
   cmd?: string; // 버튼 클릭 시 실행할 명령어 문자열
+  desc?: string; // (New) 버튼 부가 설명
 }
 
 export type CommandAction =

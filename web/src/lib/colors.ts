@@ -3,26 +3,26 @@
  * Single Source of Truth로 관리되어 layout.tsx(themeColor) 및 globals.css 등에서 참조됩니다.
  */
 export const COLORS = {
-  // Brand Colors (공통)
-  ORANGE: "#FC6736", // 요청 받은 메인 컬러
-  ORANGE_DIM: "#E05A2E",
-  ORANGE_GLOW: "rgba(252, 103, 54, 0.25)",
+  // Brand Colors: 시안/틸 인광 (Alien Romulus Rook's Terminal)
+  ORANGE: "#00d4ff", // Primary Cyan
+  ORANGE_DIM: "#0099bb",
+  ORANGE_GLOW: "rgba(0, 212, 255, 0.25)",
 
-  // Theme: Dark
-  DARK_BG: "#1c1c1c",
-  DARK_SURFACE: "#252525",
-  DARK_BORDER: "#4a5a67",
-  DARK_TEXT: "#eaefef",
-  DARK_MUTED: "#28b0e0", // 오렌지(#FC6736) 보색 계열 — 시안/청록
+  // Theme: Dark (near-black)
+  DARK_BG: "#0a0a0a",
+  DARK_SURFACE: "#0d1117",
+  DARK_BORDER: "#1a3a4a",
+  DARK_TEXT: "#c8d6e0",
+  DARK_MUTED: "#0099bb",
 
   // Theme: Light
-  LIGHT_BG: "#EFECEC", // 요청 받은 라이트 배경
+  LIGHT_BG: "#EFECEC",
   LIGHT_SURFACE: "#FFFFFF",
   LIGHT_BORDER: "#D0D0D0",
   LIGHT_TEXT: "#1c1c1c",
-  LIGHT_MUTED: "#156e8f", // 오렌지 보색 계열 — 라이트 배경용 어두운 시안 (#28b0e0 동일 색조, L 30%)
+  LIGHT_MUTED: "#007a94",
 
   // Feedback Colors (공통)
   ERROR: "#ff6b6b",
-  SUCCESS: "#FC6736",
+  SUCCESS: "#00d4ff",
 } as const;

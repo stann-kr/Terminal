@@ -34,6 +34,9 @@ export default function TerminalShell() {
 
   // 언어 ref — 콜백 내부에서 최신 language 참조용
   const languageRef = useRef<LanguageType | null>(null);
+
+  // resetBoot ref — handleAction과의 순환 의존성 없이 최신 함수 참조용
+  const resetBootRef = useRef<() => void>(() => {});
   useEffect(() => {
     languageRef.current = language;
   }, [language]);
@@ -108,7 +111,10 @@ export default function TerminalShell() {
             localStorage.removeItem("terminal_theme");
             document.documentElement.removeAttribute("data-theme");
           }
-          resetBoot();
+          resetBootRef.current();
+          break;
+        case "LIVE_NO_NAME_CHOICE":
+          // 뷰 라인에 안내 메시지가 이미 표시되므로 추가 처리 없음
           break;
       }
     },
@@ -123,8 +129,8 @@ export default function TerminalShell() {
       setIsTransmitMode(false);
 
       const result = await loadView(view, lang, args);
+      navigateTo(view); // Status Bar 즉시 업데이트 후 컨텐츠 전환 시작
       await transitionTo(result.lines);
-      navigateTo(view);
 
       if (result.action) handleAction(result.action);
       if (result.isTransmitMode) setIsTransmitMode(true);
@@ -136,8 +142,9 @@ export default function TerminalShell() {
   const onBootComplete = useCallback(
     (lang: LanguageType) => {
       setLanguage(lang);
-      setIsInputVisible(true);
-      setIsInputActive(true);
+      // 부팅 직후에는 기본 뷰(home)로 이동하므로 인풋창을 숨김 (컨텍스트 입력)
+      setIsInputVisible(false);
+      setIsInputActive(false);
       setTimeout(() => {
         navigateToView("home");
       }, 800);
@@ -151,6 +158,9 @@ export default function TerminalShell() {
     handleLanguageSelection,
     resetBoot,
   } = useBoot(setHistory, typeOutLines, scrollToBottom, onBootComplete);
+
+  // resetBootRef 최신화 (매 렌더마다 동기화)
+  resetBootRef.current = resetBoot;
 
   // boot 언어가 바뀌면 동기화 (RESET 없이 언어 재선택 시)
   useEffect(() => {
@@ -410,9 +420,42 @@ export default function TerminalShell() {
     [commandHistory, historyIndex, setHistoryIndex, setInput],
   );
 
+  // ── 글로벌 키보드 리스너 (Contextual Input 활성화) ─────────────────────────
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // 입력창이 이미 활성화되어 있거나, 모달/오버레이 등이 떠있는 상황이면 무시
+      if (document.activeElement === inputRef.current) return;
+      if (currentView === "boot") return;
+
+      // 단일 문자 입력 (알파벳, 숫자, / 등 일반적인 키) 혹은 Backspace 일 때 반응
+      // 제어 키(Ctrl, Alt, Meta)나 기능키(F1 등)는 무시
+      if (e.ctrlKey || e.altKey || e.metaKey || e.key.length > 1) {
+        if (e.key !== "Backspace") return;
+      }
+
+      // 입력 필요 없는 뷰에서 키를 누르면 입력창을 띄우고 포커스
+      if (
+        currentView !== "whois" &&
+        currentView !== "transmit" &&
+        currentView !== "live"
+      ) {
+        setIsInputVisible(true);
+        setIsInputActive(true);
+        setTimeout(() => {
+          inputRef.current?.focus();
+        }, 0);
+      } else {
+        // 이미 입력이 필요한 뷰라면 포커스만 잡아줌
+        inputRef.current?.focus();
+      }
+    };
+
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, [currentView, inputRef, isInputVisible]);
+
   // ── 렌더 ─────────────────────────────────────────────────────────────────
-  const textHistory = history.filter((line) => line.type !== "button");
-  const buttonHistory = history.filter((line) => line.type === "button");
+  const viewLabel = currentView === "boot" ? "INIT" : currentView.toUpperCase();
 
   return (
     <div className="terminal-center">
@@ -424,44 +467,45 @@ export default function TerminalShell() {
           <div className="noise-overlay" aria-hidden="true" />
           <div className="glow-overlay absolute inset-0 z-0 pointer-events-none" aria-hidden="true" />
 
+          {/* Status Bar */}
+          <div className="status-bar relative z-30" aria-label="System status">
+            <span className="status-bar__left">TERMINAL [01]</span>
+            <span className="status-bar__center">// {viewLabel}</span>
+            <span className="status-bar__right">[ONLINE]</span>
+          </div>
+
           <TerminalHistory
             historyContainerRef={historyContainerRef}
-            history={textHistory}
+            history={history}
             bottomRef={bottomRef}
             onButtonClick={handleButtonClick}
           />
-          <TerminalInput
-            input={input}
-            setInput={setInput}
-            handleSubmit={handleSubmit}
-            handleKeyDown={handleKeyDown}
-            isInputVisible={isInputVisible}
-            isInputActive={isInputActive}
-            inputRef={inputRef}
-            overlayRef={overlayRef}
-            cursorPosition={cursorPosition}
-            setCursorPosition={setCursorPosition}
-            syncScroll={syncScroll}
-            isLiveMode={isLiveMode}
-            isTransmitMode={isTransmitMode}
-            language={language}
-            scrollToBottom={scrollToBottom}
-          />
 
-          {buttonHistory.length > 0 && (
-            <div className="digital-menu-panel shrink-0 grid grid-cols-2 gap-[2px] sm:grid-cols-3 fade-in mt-4 border-t border-[var(--grey-border)] p-2 z-30 relative bg-[var(--grey-bg)]">
-              {buttonHistory.map((btn) => (
-                <button
-                  key={btn.id}
-                  type="button"
-                  onClick={() => btn.cmd && handleButtonClick(btn.cmd)}
-                  className="digital-btn text-left"
-                >
-                  {btn.text}
-                </button>
-              ))}
-            </div>
+          {(currentView === "whois" || currentView === "transmit" || currentView === "live") && (
+            <TerminalInput
+              input={input}
+              setInput={setInput}
+              handleSubmit={handleSubmit}
+              handleKeyDown={handleKeyDown}
+              isInputVisible={isInputVisible}
+              isInputActive={isInputActive}
+              inputRef={inputRef}
+              overlayRef={overlayRef}
+              cursorPosition={cursorPosition}
+              setCursorPosition={setCursorPosition}
+              syncScroll={syncScroll}
+              isLiveMode={isLiveMode}
+              isTransmitMode={isTransmitMode}
+              language={language}
+              scrollToBottom={scrollToBottom}
+            />
           )}
+
+          {/* Footer Bar */}
+          <div className="footer-bar relative z-30" aria-label="Navigation hints">
+            <span>[↑↓] NAVIGATE</span>
+            <span>v0.25.0</span>
+          </div>
         </div>
       </div>
     </div>

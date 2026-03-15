@@ -35,11 +35,13 @@ export default function TerminalInput({
   language,
   scrollToBottom,
 }: TerminalInputProps) {
+  if (!isInputVisible) return null;
+
   return (
     <div className="shrink-0 px-2 pb-1">
-      <div className="border-t-[2px] border-dashed border-[var(--grey-border)] pt-1 flex items-center gap-2 relative">
+      <div className="border-t border-[var(--panel-border)] pt-1 flex items-center gap-2 relative" style={{ boxShadow: "0 -1px 8px var(--phosphor-dim)" }}>
         <span className="text-[var(--orange)] font-bold text-sm select-none ml-2">
-          &gt;
+          &gt;&gt;
         </span>
 
         <form

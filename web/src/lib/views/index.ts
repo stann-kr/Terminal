@@ -1,5 +1,6 @@
 import type { LanguageType, TerminalLine, ViewType, CommandAction } from "../types";
 import { homeView } from "./home";
+import { aboutView } from "./about";
 import { lineupView } from "./lineup";
 import { gateView } from "./gate";
 import { whoisView } from "./whois";
@@ -18,7 +19,7 @@ export interface ViewResult {
 /** CLI 명령어 → ViewType 매핑 */
 export const COMMAND_TO_VIEW: Record<string, ViewType> = {
   home: "home",
-  about: "home",
+  about: "about",
   help: "home",
   lineup: "lineup",
   gate: "gate",
@@ -40,6 +41,8 @@ export async function loadView(
   switch (view) {
     case "home":
       return { lines: homeView(lang) };
+    case "about":
+      return { lines: aboutView(lang) };
     case "lineup":
       return { lines: lineupView(lang) };
     case "gate":
