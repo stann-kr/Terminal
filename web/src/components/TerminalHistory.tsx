@@ -49,16 +49,7 @@ export default function TerminalHistory({
           }
 
           if (termLine.type === "button") {
-            return (
-              <button
-                key={termLine.id}
-                type="button"
-                onClick={() => termLine.cmd && onButtonClick?.(termLine.cmd)}
-                className={`line-enter text-sm leading-relaxed pl-4 block w-full text-left ${LINE_COLOR.button}`}
-              >
-                {termLine.text}
-              </button>
-            );
+            return null; // 버튼은 TerminalShell 하단에 분리 렌더링
           }
 
           if (termLine.type === "header") {

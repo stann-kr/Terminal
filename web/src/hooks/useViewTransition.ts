@@ -22,11 +22,40 @@ export function useViewTransition(
       // Step 2: 짧은 딜레이 (~100ms)
       await new Promise<void>((r) => setTimeout(r, 100));
 
-      // Step 3: 라인 단위 순차 렌더링 (40ms 간격)
+      // Step 3: use typeOutLines to type out the lines
+      // We'll call typeOutLines but since we can't easily await the internal state of useTypingEngine if it's passed as a dependency,
+      // it's easier to implement the typing effect here directly or accept typeOutLines as an argument.
+      // Easiest is to accept `typeOutLines` as an argument to `useViewTransition`
+      // For now, let's implement the typing logic here directly since it's meant to transition view.
+      
       for (const termLine of lines) {
-        setHistory((prev) => [...prev, termLine]);
-        scrollToBottom();
-        await new Promise<void>((r) => setTimeout(r, 40));
+        if (!termLine.text || termLine.type === 'button') {
+          // Buttons and empty lines appear instantly or quickly
+          setHistory((prev) => [...prev, termLine]);
+          scrollToBottom();
+          await new Promise<void>((r) => setTimeout(r, 40));
+          continue;
+        }
+
+        // Add empty line first
+        const emptyLine = { ...termLine, text: "" };
+        setHistory((prev) => [...prev, emptyLine]);
+
+        const textLen = termLine.text.length;
+        // Fast typing speed (e.g. 5ms per char)
+        for (let i = 1; i <= textLen; i++) {
+          setHistory((prev) => {
+            const newHistory = [...prev];
+            newHistory[newHistory.length - 1] = {
+              ...termLine,
+              text: termLine.text.slice(0, i),
+            };
+            return newHistory;
+          });
+          scrollToBottom();
+          await new Promise<void>((r) => setTimeout(r, 5)); // 5ms typing speed
+        }
+        await new Promise<void>((r) => setTimeout(r, 10)); // tiny pause between lines
       }
 
       isTransitioningRef.current = false;

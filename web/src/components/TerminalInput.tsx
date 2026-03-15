@@ -36,9 +36,9 @@ export default function TerminalInput({
   scrollToBottom,
 }: TerminalInputProps) {
   return (
-    <div className="shrink-0">
-      <div className="border-t border-[#3a3a3a] flex items-center gap-2 relative">
-        <span className="text-[var(--orange)] font-bold text-sm select-none">
+    <div className="shrink-0 px-2 pb-1">
+      <div className="border-t-[2px] border-dashed border-[var(--grey-border)] pt-1 flex items-center gap-2 relative">
+        <span className="text-[var(--orange)] font-bold text-sm select-none ml-2">
           &gt;
         </span>
 
@@ -50,7 +50,7 @@ export default function TerminalInput({
         >
           <div
             ref={overlayRef}
-            className="absolute inset-y-0 left-0 right-0 pointer-events-none flex items-center whitespace-pre font-mono text-sm tracking-normal overflow-hidden"
+            className="absolute inset-y-0 left-0 right-0 pointer-events-none flex items-center whitespace-pre font-mono text-sm tracking-normal overflow-hidden mt-[1px]"
             aria-hidden="true"
             style={{
               fontFamily:
@@ -60,7 +60,7 @@ export default function TerminalInput({
             <span className="text-[var(--grey-text)]">
               {input.slice(0, cursorPosition)}
             </span>
-            <span className="cursor-blink w-2 h-4 bg-[var(--orange)] shrink-0" />
+            <span className="cursor-blink w-[0.4rem] h-[0.9rem] bg-[var(--orange)] shrink-0" />
             <span className="text-[var(--grey-text)]">
               {input.slice(cursorPosition)}
             </span>

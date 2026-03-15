@@ -411,32 +411,58 @@ export default function TerminalShell() {
   );
 
   // ── 렌더 ─────────────────────────────────────────────────────────────────
+  const textHistory = history.filter((line) => line.type !== "button");
+  const buttonHistory = history.filter((line) => line.type === "button");
+
   return (
     <div className="terminal-center">
-      <div className="terminal-box">
-        <TerminalHistory
-          historyContainerRef={historyContainerRef}
-          history={history}
-          bottomRef={bottomRef}
-          onButtonClick={handleButtonClick}
-        />
-        <TerminalInput
-          input={input}
-          setInput={setInput}
-          handleSubmit={handleSubmit}
-          handleKeyDown={handleKeyDown}
-          isInputVisible={isInputVisible}
-          isInputActive={isInputActive}
-          inputRef={inputRef}
-          overlayRef={overlayRef}
-          cursorPosition={cursorPosition}
-          setCursorPosition={setCursorPosition}
-          syncScroll={syncScroll}
-          isLiveMode={isLiveMode}
-          isTransmitMode={isTransmitMode}
-          language={language}
-          scrollToBottom={scrollToBottom}
-        />
+      <div className="terminal-box relative perspective-[1000px]">
+        <div className="crt-screen flex-1 flex flex-col overflow-hidden relative w-full h-full">
+          {/* CRT Effects */}
+          <div className="scanlines absolute inset-0 z-10 pointer-events-none" aria-hidden="true" />
+          <div className="vignette absolute inset-0 z-20 pointer-events-none" aria-hidden="true" />
+          <div className="noise-overlay" aria-hidden="true" />
+          <div className="glow-overlay absolute inset-0 z-0 pointer-events-none" aria-hidden="true" />
+
+          <TerminalHistory
+            historyContainerRef={historyContainerRef}
+            history={textHistory}
+            bottomRef={bottomRef}
+            onButtonClick={handleButtonClick}
+          />
+          <TerminalInput
+            input={input}
+            setInput={setInput}
+            handleSubmit={handleSubmit}
+            handleKeyDown={handleKeyDown}
+            isInputVisible={isInputVisible}
+            isInputActive={isInputActive}
+            inputRef={inputRef}
+            overlayRef={overlayRef}
+            cursorPosition={cursorPosition}
+            setCursorPosition={setCursorPosition}
+            syncScroll={syncScroll}
+            isLiveMode={isLiveMode}
+            isTransmitMode={isTransmitMode}
+            language={language}
+            scrollToBottom={scrollToBottom}
+          />
+
+          {buttonHistory.length > 0 && (
+            <div className="digital-menu-panel shrink-0 grid grid-cols-2 gap-[2px] sm:grid-cols-3 fade-in mt-4 border-t border-[var(--grey-border)] p-2 z-30 relative bg-[var(--grey-bg)]">
+              {buttonHistory.map((btn) => (
+                <button
+                  key={btn.id}
+                  type="button"
+                  onClick={() => btn.cmd && handleButtonClick(btn.cmd)}
+                  className="digital-btn text-left"
+                >
+                  {btn.text}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
