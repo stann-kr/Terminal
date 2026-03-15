@@ -1,5 +1,17 @@
 export type LanguageType = "ko" | "en";
 
+export type ViewType =
+  | "boot"
+  | "home"
+  | "lineup"
+  | "gate"
+  | "whois"
+  | "link"
+  | "status"
+  | "settings"
+  | "transmit"
+  | "live";
+
 export type LineType =
   | "output"
   | "error"
@@ -10,7 +22,8 @@ export type LineType =
   | "header"
   | "divider"
   | "progress"
-  | "live";
+  | "live"
+  | "button";
 
 export type ContentItem =
   | string
@@ -31,6 +44,7 @@ export interface TerminalLine {
   text: string;
   type: LineType;
   url?: string;
+  cmd?: string; // 버튼 클릭 시 실행할 명령어 문자열
 }
 
 export type CommandAction =

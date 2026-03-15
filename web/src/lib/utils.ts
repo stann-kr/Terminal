@@ -26,6 +26,14 @@ export const line = (
   url,
 });
 
+/** 클릭 가능한 버튼 라인 생성 */
+export const btn = (text: string, cmd: string): TerminalLine => ({
+  id: uid(),
+  text,
+  type: "button",
+  cmd,
+});
+
 export const parseContent = (
   items: I18nContentItem,
   lang: LanguageType,

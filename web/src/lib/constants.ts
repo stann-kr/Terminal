@@ -10,31 +10,10 @@ export const LINE_COLOR: Record<TerminalLine["type"], string> = {
   header: "", // Uses .terminal-header from globals.css directly
   divider: "",
   progress: "text-[var(--grey-muted)] font-mono",
-  live: "text-[var(--grey-text)]", // live chat messages — same color as output, with fadeIn animation
+  live: "text-[var(--grey-text)]",
+  button:
+    "text-[var(--orange)] hover:text-[var(--orange-dim)] cursor-pointer font-bold transition-colors",
 };
-
-export type QuickCommand = {
-  id?: string;
-  label: string;
-  cmd: string;
-  stageOnly?: boolean;
-  back?: boolean;
-  flow?: "transmit" | "live";
-  readNodeId?: boolean; // 클릭 시점에 localStorage에서 nodeId를 동적으로 읽어 cmd에 주입
-};
-
-export const DEFAULT_QUICK_COMMANDS: QuickCommand[] = [
-  { label: "about", cmd: "about" },
-  { label: "lineup", cmd: "lineup" },
-  { label: "gate", cmd: "gate" },
-  { label: "whois", cmd: "whois" },
-  { label: "transmit", cmd: "transmit" },
-  { label: "live", cmd: "live" },
-  { label: "link", cmd: "link" },
-  { label: "status", cmd: "status" },
-  { label: "settings", cmd: "settings" },
-  { label: "help", cmd: "help" },
-];
 
 export const AVAILABLE_COMMANDS = [
   "about",

@@ -13,6 +13,7 @@ interface TerminalInputProps {
   setCursorPosition: (v: number) => void;
   syncScroll: () => void;
   isLiveMode: boolean;
+  isTransmitMode: boolean;
   language: string | null;
   scrollToBottom: () => void;
 }
@@ -30,6 +31,7 @@ export default function TerminalInput({
   setCursorPosition,
   syncScroll,
   isLiveMode,
+  isTransmitMode,
   language,
   scrollToBottom,
 }: TerminalInputProps) {
@@ -109,9 +111,13 @@ export default function TerminalInput({
                 ? language === "ko"
                   ? "메시지 전송... (/leave 로 세션 종료)"
                   : "broadcast... (/leave to end session)"
-                : language === "ko"
-                  ? "'help' 입력 또는 아래 버튼 클릭"
-                  : "type 'help' or tap a button below"
+                : isTransmitMode
+                  ? language === "ko"
+                    ? "방명록 메시지 입력... (명령어로 이동 가능)"
+                    : "guestbook message... (type command to navigate)"
+                  : language === "ko"
+                    ? "명령어 입력 또는 버튼 클릭"
+                    : "type a command or click a button"
             }
             aria-label="Terminal input"
             className="

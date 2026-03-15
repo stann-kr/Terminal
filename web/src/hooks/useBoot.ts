@@ -13,7 +13,7 @@ export function useBoot(
   setHistory: React.Dispatch<React.SetStateAction<TerminalLine[]>>,
   typeOutLines: (lines: TerminalLine[]) => Promise<void>,
   scrollToBottom: () => void,
-  setQuickCmdContext: React.Dispatch<React.SetStateAction<string | null>>,
+  onBootComplete: (lang: LanguageType) => void,
 ) {
   const [isBooting, setIsBooting] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -58,20 +58,25 @@ export function useBoot(
         text: "인터페이스 언어를 선택하세요.",
         type: "output",
       },
-      { id: `lang-4-${uid()}`, text: "  [ 1 ]  ENGLISH", type: "output" },
-      { id: `lang-5-${uid()}`, text: "  [ 2 ]  한국어", type: "output" },
-      { id: `lang-6-${uid()}`, text: "", type: "divider" },
+      { id: `lang-4-${uid()}`, text: "", type: "divider" },
       {
-        id: `lang-7-${uid()}`,
-        text: "↓ Type 1 or 2, or click a button below.",
-        type: "system",
+        id: `lang-b1-${uid()}`,
+        text: "> [ 1 ]  ENGLISH",
+        type: "button",
+        cmd: "1",
       },
       {
-        id: `lang-8-${uid()}`,
-        text: "↓ 아래 버튼을 클릭하거나 1 또는 2를 입력하세요.",
+        id: `lang-b2-${uid()}`,
+        text: "> [ 2 ]  한국어",
+        type: "button",
+        cmd: "2",
+      },
+      { id: `lang-5-${uid()}`, text: "", type: "divider" },
+      {
+        id: `lang-6-${uid()}`,
+        text: "↓ Type 1 or 2, or click a button.",
         type: "system",
       },
-      { id: `lang-9-${uid()}`, text: "", type: "divider" },
     ]);
   }, [isInitialized, language, setHistory]);
 
@@ -139,15 +144,23 @@ export function useBoot(
 
       scrollToBottom();
       setIsBooting(false);
-      setQuickCmdContext(null);
+      onBootComplete(selectedLang);
     },
-    [setHistory, typeOutLines, scrollToBottom, setQuickCmdContext],
+    [setHistory, typeOutLines, scrollToBottom, onBootComplete],
   );
 
   useEffect(() => {
     if (language === null || hasBootedRef.current) return;
     runSystemSequence(language);
   }, [language, runSystemSequence]);
+
+  const resetBoot = () => {
+    hasBootedRef.current = false;
+    hasShownLangPromptRef.current = false;
+    setLanguage(null);
+    setIsBooting(true);
+    setIsFirstBoot(false);
+  };
 
   return {
     isBooting,
@@ -159,5 +172,6 @@ export function useBoot(
     hasBootedRef,
     handleLanguageSelection,
     runSystemSequence,
+    resetBoot,
   };
 }

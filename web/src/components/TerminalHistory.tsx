@@ -7,12 +7,14 @@ interface TerminalHistoryProps {
   historyContainerRef: React.RefObject<HTMLDivElement>;
   history: TerminalLine[];
   bottomRef: React.RefObject<HTMLDivElement>;
+  onButtonClick?: (cmd: string) => void;
 }
 
 export default function TerminalHistory({
   historyContainerRef,
   history,
   bottomRef,
+  onButtonClick,
 }: TerminalHistoryProps) {
   return (
     <>
@@ -27,61 +29,69 @@ export default function TerminalHistory({
         aria-live="polite"
         aria-relevant="additions"
       >
-        {history.map((line) => {
-          if (line.type === "link" && line.url) {
+        {history.map((termLine) => {
+          if (termLine.type === "link" && termLine.url) {
             return (
               <p
-                key={line.id}
-                style={{ animation: "fadeIn 0.45s ease forwards" }}
-                className="font-mono text-sm leading-relaxed break-all pl-4"
+                key={termLine.id}
+                className="line-enter font-mono text-sm leading-relaxed break-all pl-4"
               >
                 <a
-                  href={line.url}
+                  href={termLine.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={LINE_COLOR[line.type as keyof typeof LINE_COLOR]}
+                  className={LINE_COLOR[termLine.type as keyof typeof LINE_COLOR]}
                 >
-                  {line.text}
+                  {termLine.text}
                 </a>
               </p>
             );
           }
 
-          if (line.type === "header") {
+          if (termLine.type === "button") {
+            return (
+              <button
+                key={termLine.id}
+                type="button"
+                onClick={() => termLine.cmd && onButtonClick?.(termLine.cmd)}
+                className={`line-enter text-sm leading-relaxed pl-4 block w-full text-left ${LINE_COLOR.button}`}
+              >
+                {termLine.text}
+              </button>
+            );
+          }
+
+          if (termLine.type === "header") {
             return (
               <div
-                key={line.id}
+                key={termLine.id}
                 data-line-type="header"
-                style={{ animation: "fadeIn 0.45s ease forwards" }}
-                className="terminal-header"
+                className="line-enter terminal-header"
               >
-                {line.text}
+                {termLine.text}
               </div>
             );
           }
 
-          if (line.type === "divider") {
+          if (termLine.type === "divider") {
             return (
               <div
-                key={line.id}
+                key={termLine.id}
                 className="border-t border-[var(--grey-border)] my-2 opacity-50 w-[95%]"
               />
             );
           }
 
-          const isInput = line.type === "input";
-          const hasAnim = line.type !== "output";
+          const isInput = termLine.type === "input";
+          const hasAnim = termLine.type !== "output";
 
           return (
             <div
-              key={line.id}
-              data-line-type={line.type}
-              style={
-                hasAnim ? { animation: "fadeIn 0.4s ease forwards" } : undefined
-              }
-              className={`text-sm leading-relaxed whitespace-pre-wrap break-words ${LINE_COLOR[line.type as keyof typeof LINE_COLOR]} ${isInput ? "mt-6 mb-1" : "pl-4"}`}
+              key={termLine.id}
+              data-line-type={termLine.type}
+              className={`text-sm leading-relaxed whitespace-pre-wrap break-words ${LINE_COLOR[termLine.type as keyof typeof LINE_COLOR]} ${hasAnim ? "line-enter" : ""} ${isInput ? "mt-6 mb-1" : "pl-4"}`}
             >
-              {line.text}
+              {termLine.text}
             </div>
           );
         })}
